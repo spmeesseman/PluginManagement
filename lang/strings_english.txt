@@ -1,0 +1,22 @@
+<?php
+
+# Custom strings for english language
+
+$s_plugin_Plugins_title = 'Plugins';
+$s_plugin_Plugins_description = 'Add some additional security to MantisBT';
+
+$s_plugin_Plugins_config = 'Configuration';
+$s_plugin_Plugins_update_config = 'Update Configuration';
+$s_plugin_Plugins_field_github_api_token = 'GitHub API Token';
+
+$s_plugin_Plugins_management_title = 'Plugins Xtra';
+$s_plugin_Plugins_management_confirm_clear = 'Are you sure you want clear/delete all items?';
+
+$s_plugin_Plugins_management_info_title = 'Info';
+$s_plugin_Plugins_management_info_label = 'README.md';
+$s_plugin_Plugins_management_info_changelog_label = 'CHANGELOG.md';
+
+$s_plugin_Plugins_management_update_title = 'Updates';
+$s_plugin_Plugins_management_update_get = 'Get';
+
+$s_plugin_Plugins_management_update_download_tooltip = 'Download and install';
