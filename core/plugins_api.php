@@ -432,6 +432,8 @@ function plugins_print_update_section()
                             <th>' . lang_get( 'plugin' ) . '</th>
                             <th>' . lang_get( 'plugin_description' ) . '</th>
                             <th>' . lang_get( 'plugin_depends' ) . '</th>
+                            <th>' . lang_get( 'plugin_priority' ) . '</th>
+                            <th>' . lang_get( 'plugin_protected' ) . '</th>
                             <th nowrap>' . lang_get( 'plugin_actions' ) . '</th>
                         </tr>
                     </thead>
@@ -502,14 +504,34 @@ function plugins_print_update_section()
             echo '<td class="small center">',$t_name,'<input type="hidden" name="change_',$t_basename,'" value="1"/></td>';
             echo '<td class="small">',$t_description,$t_author,$t_url,'</td>';
             echo '<td class="small center">',$t_depends,'</td>';
-            echo '<td class="center" nowrap>';
+            if( 'MantisCore' == $t_basename ) {
+                echo '<td>&#160;</td><td>&#160;</td>';
+            } else {
+                echo '<td class="center">',
+                    '<select name="priority_' . $t_basename . '"',
+                        ' class="input-sm">',
+                        print_plugin_priority_list( $t_priority ),
+                    '</select>','</td>';
+                echo '<td class="center">',
+                '<label>',
+                    '<input type="checkbox" class="ace" name="protected_' . $t_basename . '"',
+                        check_checked( $t_protected ), ' />',
+                '<span class="lbl"></span>',
+                '</label>',
+                    '</select>','</td>';
+            }
+            echo '<td align="right" nowrap><table style="display:inline"><tr>';
             //echo '<span class="pull-right padding-right-2">';
             if( $t_upgrade ) {
+                echo '<td><span class="pull-right padding-right-2">';
                 print_link_button(
                     'manage_plugin_upgrade.php?name=' . $t_basename . form_security_param( 'manage_plugin_upgrade' ),
                     lang_get( 'plugin_upgrade' ), 'btn-xs' );
+                echo '</span></td>';
             }
-            else if( $t_new_release != null && $t_new_release['name'] != null ) {
+            else if( $t_new_release != null && $t_new_release['name'] != null ) 
+            {
+                echo '<td><span class="pull-right padding-right-2">';
                 if ($t_new_release['version'] != null) {
                     if (version_compare($t_new_release['version'], $t_plugin->version) > 0) {              
                         if ( $t_new_release['zipball_url'] != null ) {
@@ -520,15 +542,24 @@ function plugins_print_update_section()
                         }
                     }
                 }
+                echo '</span></td>';
             }
-            echo '</td></tr>';
+            if( !$t_protected ) 
+            {
+                echo '<td><span class="pull-right padding-right-2">';
+                print_link_button(
+                    'manage_plugin_uninstall.php?name=' . $t_basename . form_security_param( 'manage_plugin_uninstall' ),
+                    lang_get( 'plugin_uninstall' ),  'btn-xs' );
+                echo '</span></td>';
+            }
+            echo '</tr></table></td></tr>';
         }
 
         echo '      </tbody>
                 </table>
             </div>
             <div class="widget-toolbox padding-8 clearfix">
-                
+                <input type="submit" class="btn btn-sm btn-primary btn-white btn-round" value="' . lang_get( 'plugin_update' ) . '"/>
             </div>
         </div>
         </div>
