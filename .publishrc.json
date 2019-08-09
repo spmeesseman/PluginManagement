@@ -12,7 +12,7 @@
         "cmd /c copy /Y LICENSE.txt build\\Plugins",
         "cmd /c copy /Y Plugins.php build\\Plugins",
         "Compress-Archive -Path build\\Plugins -Update -CompressionLevel Optimal -DestinationPath build\\Plugins.zip",
-        "tar -czf build/Plugins.tgz build\\Plugins",
+        "tar -C build -czf build/Plugins.tgz Plugins",
         "cmd /c rmdir /S /Q build\\Plugins"
     ],
     "changelogFile":     "CHANGELOG.md",
