@@ -521,7 +521,6 @@ function plugins_print_update_section()
                     '</select>','</td>';
             }
             echo '<td align="right" nowrap><table style="display:inline"><tr>';
-            //echo '<span class="pull-right padding-right-2">';
             if( $t_upgrade ) {
                 echo '<td><span class="pull-right padding-right-2">';
                 print_link_button(
