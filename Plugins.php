@@ -62,7 +62,7 @@ class PluginsPlugin extends MantisPlugin
     function csp_headers() 
     {
         $t_protocol = stripos($_SERVER['SERVER_PROTOCOL'],'https') === 0 ? 'https://' : 'http://';
-        http_csp_add('img-src', $t_protocol + 'img.shields.io/');
+        http_csp_add('img-src', $t_protocol . 'img.shields.io/');
     }
     
     
