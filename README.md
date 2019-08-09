@@ -5,8 +5,6 @@
 [![app-publisher](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-app--publisher-e10000.svg)](https://github.com/spmeesseman/app-publisher)
 [![authors](https://img.shields.io/badge/authors-scott%20meesseman-6F02B5.svg?logo=visual%20studio%20code)](https://github.com/spmeesseman)
 
-[![GitHub issues open](https://img.shields.io/github/issues-raw/mantisbt-plugins/Plugins.svg?maxAge=2592000&logo=github)](https://github.com/mantisbt-plugins/Plugins/issues)
-[![GitHub issues closed](https://img.shields.io/github/issues-closed-raw/mantisbt-plugins/Plugins.svg?maxAge=2592000&logo=github)](https://github.com/mantisbt-plugins/Plugins/issues)
 [![MantisBT issues open](https://app1.spmeesseman.com/projects/plugins/ApiExtend/api/issues/countbadge/Plugins/open)](https://app1.spmeesseman.com/projects/set_project.php?project=Plugins&make_default=no&ref=bug_report_page.php)
 [![MantisBT issues closed](https://app1.spmeesseman.com/projects/plugins/ApiExtend/api/issues/countbadge/Plugins/closed)](https://app1.spmeesseman.com/projects/set_project.php?project=Plugins&make_default=no&ref=bug_report_page.php)
 [![MantisBT version current](https://app1.spmeesseman.com/projects/plugins/ApiExtend/api/versionbadge/Plugins/current)](https://app1.spmeesseman.com/projects/set_project.php?project=Plugins&make_default=no&ref=plugin.php?page=Releases/releases)
@@ -43,7 +41,7 @@ Install the plugin using the default installation procedure for a MantisBT plugi
 
 ## Issues and Feature Requests
 
-Issues for my plugins will probably at some point be hosted by my [MantisBT](https://app1.spmeesseman.com/projects/set_project.php?project=Plugins&make_default=no&ref=bug_report_page.php) site.  Until that is up and running and configured correctly, please use [GitHub Issues](https://github.com/mantisbt-plugins/Plugins/issues) to report any problems or requests.
+Issues and requests should be submitted on my [MantisBT](https://app1.spmeesseman.com/projects/set_project.php?project=Plugins&make_default=no&ref=bug_report_page.php) site.
 
 ## Configuration
 
