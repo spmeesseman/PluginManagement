@@ -13,6 +13,7 @@
 - [Plugins MantisBT Plugin](#Plugins-MantisBT-Plugin)
   - [Description](#Description)
   - [Installation](#Installation)
+  - [Requirements](#Requirements)
   - [Issues and Feature Requests](#Issues-and-Feature-Requests)
   - [Configuration](#Configuration)
   - [Usage](#Usage)
@@ -38,6 +39,15 @@ Extract the release archive to the MantisBT installations plugins folder:
 Ensure to use the latest released version number in the download url: [![MantisBT version current](https://app1.spmeesseman.com/projects/plugins/ApiExtend/api/versionbadge/Plugins/current)](https://app1.spmeesseman.com/projects) (version badge available via the [ApiExtend Plugin](https://github.com/mantisbt-plugins/ApiExtend))
 
 Install the plugin using the default installation procedure for a MantisBT plugin in `Manage -> Plugins`.
+
+## Requirements
+
+The following PHP components are required by this plugin:
+
+- php-zip
+
+    sudo apt install php7.2-zip
+- webserver must have write access to this plugin directory
 
 ## Issues and Feature Requests
 

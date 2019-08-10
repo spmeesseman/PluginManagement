@@ -1,11 +1,29 @@
 <?php
+
 use splitbrain\PHPArchive\Tar;
+
+
+
+function plugins_archive_plugin( $p_plugin_name, $p_plugin_version )
+{
+    $t_zip = new ZipArchiveEx();
+    $t_path = config_get_global( 'plugin_path' ) . DIRECTORY_SEPARATOR . $p_plugin_name;
+    log_event( LOG_PLUGIN, "PluginManagement: Archive plugin %s v%s path = %s", $p_plugin_name, $p_plugin_version, $t_path );
+    $t_filename = plugins_get_backup_dir() . $p_plugin_name . '--v' . $p_plugin_version . '.zip';
+    if ( $t_zip->open( $t_filename, ZipArchive::CREATE | ZipArchive::OVERWRITE ) !== true ) {
+        trigger_error( plugin_lang_get( 'backup failed' ) );
+    }
+    $t_zip->addDir($t_path, $p_plugin_name);
+    $t_zip->close();
+    return $t_filename;
+}
+
 
 function plugins_get_button_clear( $p_tab, $p_action, $p_param = '' )
 {
     return '<span class="pull-right">
                 <form method="post" action="' . plugin_page( 'plugins_edit' ) . '" title= "' . plugin_lang_get( 'log_clear' ) . '" class="form-inline">
-                    ' . form_security_field( 'plugin_Plugins_plugins_edit' ) . '
+                    ' . form_security_field( 'plugin_PluginManagement_plugins_edit' ) . '
                     <input type="hidden" name="action" value="' . $p_action . '" />
                     <input type="hidden" name="param" value="' . $p_param . '" />
                     <input type="hidden" name="tab" value="' . $p_tab . '" />
@@ -20,7 +38,7 @@ function plugins_get_button_delete( $p_tab, $p_action, $p_id = 0, $p_param = '' 
 {
     return '<span class="pull-right padding-right-8">
                 <form method="post" action="' . plugin_page( 'plugins_edit' ) . '" title= "' . lang_get( 'delete_link' ) . '"  class="form-inline">
-                    ' . form_security_field( 'plugin_Plugins_plugins_edit' ) . '
+                    ' . form_security_field( 'plugin_PluginManagement_plugins_edit' ) . '
                     <input type="hidden" name="action" value="' . $p_action . '" />
                     <input type="hidden" name="param" value="' . $p_param . '" />
                     <input type="hidden" name="tab" value="' . $p_tab . '" />
@@ -35,7 +53,7 @@ function plugins_get_button_add_email()
 {
     return '<span class="pull-right" style="padding-right:30px">
                 <form method="post" action="' . plugin_page( 'plugins_edit ') . '" class="form-inline">
-                    ' . form_security_field( 'plugin_Plugins_plugins_edit' ) . '
+                    ' . form_security_field( 'plugin_PluginManagement_plugins_edit' ) . '
                     <input type="hidden" name="action" value="add_account_blocked_email" />
                     <input type="hidden" name="tab" value="Account Block" />
                     <input type="hidden" name="id" value="0" />
@@ -46,36 +64,217 @@ function plugins_get_button_add_email()
 }
 
 
-function plugins_print_button_download( $p_plugin_name, $p_text, $p_download_url )
+function plugins_print_button_download( $p_plugin_name, $p_plugin_current_version, $p_plugin_lastest_version, $p_text, $p_download_url )
 {
     echo '<form method="post" action="' . plugin_page( 'download' ) . '" title= "' . plugin_lang_get( 'update_download_tooltip' ) . '"  class="form-inline">
-            ' . form_security_field( 'plugin_Plugins_download' ) . '
+            ' . form_security_field( 'plugin_PluginManagement_download' ) . '
             <input type="hidden" name="plugin_name" value="' . $p_plugin_name . '" />
+            <input type="hidden" name="plugin_current_version" value="' . $p_plugin_current_version . '" />
+            <input type="hidden" name="plugin_latest_version" value="' . $p_plugin_lastest_version . '" />
             <input type="hidden" name="download_url" value="' . $p_download_url . '" />
             <input type="submit" name="submit" class="btn btn-primary btn-xs btn-white btn-round" value="' . $p_text . '" />
         </form>';
 }
 
 
-function plugins_recursive_copy( $p_src, $p_dst ) 
+function plugins_copy_recursive( $p_src, $p_dst ) 
 {
-	$dir = opendir( $p_src );
-    @mkdir( $p_dst );
-    
-    while(( $file = readdir($dir)) ) 
-    {
-        if ( ( $file != '.' ) && ( $file != '..' ) ) 
-        {
-			if ( is_dir( $p_src . '/' . $file ) ) {
-				$this->recursive_copy( $p_src .'/'. $file, $p_dst .'/'. $file );
+    if (! is_dir($p_src)) {
+        trigger_error( "$p_src must be a directory" );
+    }
+
+    if ( substr($p_src, strlen($p_src) - 1, 1) != DIRECTORY_SEPARATOR ) {
+        $p_src .= DIRECTORY_SEPARATOR;
+    }
+
+    if ( substr($p_dst, strlen($p_dst) - 1, 1) != DIRECTORY_SEPARATOR ) {
+        $p_dst .= DIRECTORY_SEPARATOR;
+    }
+
+    $t_dir = opendir( $p_src );
+    while ( ( $t_file = readdir($t_dir)) ) {
+        if ( ( $t_file != '.' ) && ( $t_file != '..' ) ) {
+			if ( is_dir( $p_src . $t_file ) ) {
+				plugins_copy_recursive( $p_src . $t_file . DIRECTORY_SEPARATOR, $p_dst . $t_file . DIRECTORY_SEPARATOR );
 			}
 			else {
-				copy( $p_src .'/'. $file, $p_dst .'/'. $file );
+                copy( $p_src . $t_file, $p_dst . $t_file );
 			}
 		}
     }
-    
-	closedir($dir);
+	closedir($t_dir);
+}
+
+
+function plugins_delete_dir($p_path) 
+{
+    if (! is_dir($p_path)) {
+        trigger_error( "$p_path must be a directory" );
+    }
+    log_event( LOG_PLUGIN, "PluginManagement: delete dir = %s", $p_path  );
+
+    if ( substr($p_path, strlen($p_path) - 1, 1) != DIRECTORY_SEPARATOR ) {
+        $p_path .= DIRECTORY_SEPARATOR;
+    }
+
+    $t_files = array_diff(scandir($p_path), array('.', '..')); 
+    foreach ($t_files as $t_file) { 
+        $t_file_path = $p_path . $t_file;
+        (is_dir( $t_file_path ) ) ? plugins_delete_dir( $t_file_path ) : unlink( $t_file_path ); 
+    }
+
+    rmdir($p_path); 
+}
+
+
+function plugins_find_all_backups() 
+{
+	$t_plugin_path = config_get_global( 'plugin_path' ) . DIRECTORY_SEPARATOR . 'backup';
+	$t_plugins = array();
+	if( $t_dir = opendir( $t_plugin_path ) ) {
+		while( ( $t_file = readdir( $t_dir ) ) !== false ) {
+			if( '.' == $t_file || '..' == $t_file ) {
+				continue;
+			}
+			if( is_dir( $t_plugin_path . $t_file ) ) {
+				$t_plugin = plugin_register( $t_file, true );
+				if( !is_null( $t_plugin ) ) {
+					$t_plugins[$t_file] = $t_plugin;
+				}
+			}
+		}
+		closedir( $t_dir );
+	}
+	return $t_plugins;
+}
+
+
+function plugins_get_download_dir()
+{
+    $t_mantis_plugin_dir = config_get_global( 'plugin_path' )  . DIRECTORY_SEPARATOR ;
+    $t_download_dir = $t_mantis_plugin_dir . 'PluginManagement' . DIRECTORY_SEPARATOR . 'download' . DIRECTORY_SEPARATOR;
+    if ( !file_exists( $t_download_dir ) ) {
+        @mkdir($t_download_dir, 0755, true);
+    }
+    return $t_download_dir;
+}
+
+
+function plugins_get_backup_dir()
+{
+    $t_mantis_plugin_dir = config_get_global( 'plugin_path' )  . DIRECTORY_SEPARATOR ;
+    $t_backup_dir = $t_mantis_plugin_dir . 'PluginManagement' . DIRECTORY_SEPARATOR . 'backup' . DIRECTORY_SEPARATOR;
+    if ( !file_exists( $t_backup_dir ) ) {
+        @mkdir($t_backup_dir, 0755, true);
+    }
+    return $t_backup_dir;
+}
+
+
+/**
+ * Unzip the source_file in the destination dir
+ *
+ * @param   string      The path to the ZIP-file.
+ * @param   string      The path where the zipfile should be unpacked, if false the directory of the zip-file is used
+ * @param   boolean     Indicates if the files will be unpacked in a directory with the name of the zip-file (true) or not (false) (only if the destination directory is set to false!)
+ * @param   boolean     Overwrite existing files (true) or not (false)
+ *  
+ * @return  boolean     Succesful or not
+ */
+function plugins_unzip( $p_src_file, $p_dest_dir = false, $p_create_zip_name_dir = true, $p_overwrite = true )
+{
+    log_event( LOG_PLUGIN, "PluginManagement: Unzip %s", $p_src_file );
+
+    if ( $t_zip = zip_open( $p_src_file ) ) 
+    {
+        if ( $t_zip ) 
+        {
+            $splitter = ( $p_create_zip_name_dir === true ) ? "." : "/";
+            if ( $p_dest_dir === false ) {
+                $p_dest_dir = substr( $p_src_file, 0, strrpos( $p_src_file, $splitter ) ) . "/";
+            }
+
+            # Create the directories to the destination dir if they don't already exist
+            plugins_create_dirs($p_dest_dir);
+
+            # For every file in the zip-packet
+            while ( $t_zip_entry = zip_read( $t_zip ) ) 
+            {
+                # Now we're going to create the directories in the destination directories
+                # If the file is not in the root dir
+                $pos_last_slash = strrpos( zip_entry_name( $t_zip_entry ), "/" );
+                if  ( $pos_last_slash !== false ) {
+                    # Create the directory where the zip-entry should be saved (with a "/" at the end)
+                    plugins_create_dirs( $p_dest_dir . substr( zip_entry_name( $t_zip_entry ), 0, $pos_last_slash + 1 ) );
+                }
+                
+                # Open the entry
+                if ( zip_entry_open( $t_zip, $t_zip_entry, "r" ) ) {
+
+                    # The name of the file to save on the disk
+                    $t_file_name = $p_dest_dir . zip_entry_name($t_zip_entry);
+
+                    # Check if the files should be overwritten or not
+                    if ( $p_overwrite === true || $p_overwrite === false && !is_file( $t_file_name ) ) {
+                        # Get the content of the zip entry
+                        $t_fstream = zip_entry_read( $t_zip_entry, zip_entry_filesize( $t_zip_entry ) );
+                        file_put_contents( $t_file_name, $t_fstream );
+                        # Set the rights
+                        if (is_dir($t_file_name)) {
+                            chmod( $t_file_name, 0750 );
+                        }
+                        else {
+                            chmod( $t_file_name, 0644 );
+                        }
+                    }
+                    # Close the entry
+                    zip_entry_close( $t_zip_entry );
+                }
+            }
+            # Close the zip-file
+            zip_close( $t_zip );
+        }
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ * This function creates recursive directories if it doesn't already exist
+ *
+ * @param String  The path that should be created
+ *  
+ * @return  void
+ */
+function plugins_create_dirs( $p_path )
+{
+    if ( !is_dir( $p_path ) ) {
+        $t_directory_path = "";
+        $t_directories = explode( "/", $p_path );
+        array_pop( $t_directories );
+        foreach ( $t_directories as $t_directory ) {
+            $t_directory_path .= $t_directory . "/";
+            if ( !is_dir( $t_directory_path ) ) {
+                mkdir( $t_directory_path );
+                chmod( $t_directory_path, 0750 );
+            }
+        }
+    }
+}
+
+
+function plugins_find_file( $p_folder, $p_pattern ) 
+{
+    $t_iti = new RecursiveDirectoryIterator($p_folder);
+    foreach(new RecursiveIteratorIterator($t_iti) as $t_file){
+         if(strpos($t_file , $p_pattern) !== false){
+            return $t_file;
+         }
+    }
+    return false;
 }
 
 
@@ -84,25 +283,27 @@ function plugins_recursive_copy( $p_src, $p_dst )
  * @param MantisPlugin $p_plugin Plugin basename.
  * @return boolean True if plugin has a new version available
  */
-function plugins_update_plugin( $p_plugin_name, $p_download_url ) 
+function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_plugin_lastest_version, $p_download_url ) 
 {
-    $t_mantis_plugin_dir = dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . DIRECTORY_SEPARATOR . 'plugins'  . DIRECTORY_SEPARATOR . $p_plugin_name . DIRECTORY_SEPARATOR;
-    $t_download_dir = dirname( dirname( __FILE__ ) ) . DIRECTORY_SEPARATOR . 'download' . DIRECTORY_SEPARATOR . $p_plugin_name . DIRECTORY_SEPARATOR;
-    $t_backup_dir = dirname( dirname( __FILE__ ) ) . DIRECTORY_SEPARATOR . 'backup' . DIRECTORY_SEPARATOR . $p_plugin_name . DIRECTORY_SEPARATOR;
+    $t_success = true;
+    $t_mantis_plugin_dir = config_get_global( 'plugin_path' )  . DIRECTORY_SEPARATOR ;
+    $t_plugin_dir = $t_mantis_plugin_dir . $p_plugin_name . DIRECTORY_SEPARATOR;
     $t_release_filename = basename( $p_download_url);
+    $t_download_dir = plugins_get_download_dir();
     $t_release_file = $t_download_dir .  $t_release_filename;
 
-    if ( !file_exists( $t_mantis_plugin_dir ) ) {
+    log_event( LOG_PLUGIN, "PluginManagement: Update release for %s from v%s to v%s", $p_plugin_name, $p_plugin_current_version, $p_plugin_lastest_version );
+
+    if ( !file_exists( $t_plugin_dir ) ) {
         return false;
     }
 
-	if ( !file_exists( $t_download_dir ) ) {
-        @mkdir($t_download_dir, 0777, true);
-    }
+    #
+    # Backup
+    #
+    $t_archive_path = plugins_archive_plugin( $p_plugin_name, $p_plugin_current_version );
 
-    if ( !file_exists($t_backup_dir)) {
-        @mkdir($t_backup_dir, 0777, true);
-    }
+    log_event( LOG_PLUGIN, "PluginManagement: Download %s", $p_download_url );
 
     #
     # Use curl to send GiHub API request
@@ -110,8 +311,9 @@ function plugins_update_plugin( $p_plugin_name, $p_download_url )
     $curl = curl_init();
     curl_setopt_array( $curl, [
         CURLOPT_URL => $p_download_url,
-        CURLOPT_HEADER => true, 
-        CURLOPT_NOBODY => true,
+        CURLOPT_HTTPHEADER => [
+            "User-Agent: mantisbt-plugins"
+        ],
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => false,
@@ -128,31 +330,37 @@ function plugins_update_plugin( $p_plugin_name, $p_download_url )
     fclose($t_file);
 
     #
-    # Backup
+    # Update / overwrite existing plugin
     #
-    plugins_recursive_copy( $t_mantis_plugin_dir, $t_backup_dir );
 
-    #
-    # Update
-    #
+    $t_dest_dir = $t_download_dir . $p_plugin_name . '-' . $p_plugin_lastest_version . DIRECTORY_SEPARATOR;
 
     #
     # Zip
-    #
-    if ( strstr( $t_release_file, '.zip' ) != false )
+    #  
+    if ( strstr( $p_download_url, 'zipball' ) != false || strstr( $p_download_url, '.zip' ) != false)
     {
-        $t_zip = new ZipArchive;
-        if ( $t_zip->open( $t_release_file ) === true ) 
-        {
-            $t_zip->extractTo( $t_download_dir );
-            $t_zip->close();
-        } 
+        #if ( !plugins_unzip( $t_release_file, $t_plugin_dir, false ) ) {
+        if ( plugins_unzip( $t_release_file, $t_dest_dir ) ) {
+            # Examine the folder, find where the base plugin file is
+            $t_main_file = plugins_find_file( $t_dest_dir,  $p_plugin_name . ".php" );
+            $t_main_dir = dirname( $t_main_file ) . DIRECTORY_SEPARATOR;
+            if ( !is_blank($t_main_dir) ) {
+                log_event( LOG_PLUGIN, "PluginManagement: Found main plugin file dir = %s", $t_main_dir  );
+                # update/overwrite the plugin files
+                plugins_copy_recursive( $t_main_dir , $t_plugin_dir  );
+            }
+            else {
+                log_event( LOG_PLUGIN, "PluginManagement: Could not find main plugin file %s", $t_main_file );
+                $t_success = false;
+            }
+        }
         else {
-            return false;
+            $t_success = false;
         }
     }
     #
-    # Tarball
+    # TODO - Tarball - not sure will even need this
     #
     else if ( strstr($t_release_file, '.tgz' ) != false)
     {
@@ -163,16 +371,25 @@ function plugins_update_plugin( $p_plugin_name, $p_download_url )
             $t_tarball->close();
         } 
         else {
-            return false;
+            $t_success = false;
         }
     }
     else {
-        return false;
+        $t_success = false;
     }
 
-    unlink( $t_release_file );
+    #
+    # Cleanup
+    #
+    if ( is_file( $t_release_file ) ) {
+        unlink( $t_release_file );
+    }
+    if ( is_dir( $t_dest_dir ) ) {
+        log_event( LOG_PLUGIN, "PluginManagement: 1"  );
+        plugins_delete_dir( $t_dest_dir );
+    }
 
-	return true;
+	return $t_success;
 }
 
 
@@ -309,7 +526,7 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
 function plugins_get_mantis_base_url()
 {
     return sprintf(
-      "%s://%s/",
+      "%s:#%s/",
       isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http',
       $_SERVER['SERVER_NAME']
     );

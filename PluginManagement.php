@@ -4,6 +4,7 @@
 # Licensed under GPL3 
 
 require_once('core/plugins_api.php');
+require_once( 'classes/ZipArchiveEx.class.php' );
 
 
 class PluginManagementPlugin extends MantisPlugin
@@ -45,7 +46,8 @@ class PluginManagementPlugin extends MantisPlugin
 		return array(
 			'edit_threshold_level'	=> ADMINISTRATOR ,
             'view_threshold_level'	=> MANAGER,
-            'github_api_token' => ''
+            'github_api_token' => '',
+            'plugin_path_backup' => 'backup'
 		);
 	}
 
@@ -66,7 +68,7 @@ class PluginManagementPlugin extends MantisPlugin
     }
     
 
-    function resources($event) 
+    function resources($event) # this doesnt get called anymore??
     {
         return '<link rel="stylesheet" type="text/css" href="'.plugin_file("plugins.css").'"/>';
     }

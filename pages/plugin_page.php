@@ -70,6 +70,13 @@ uasort( $t_plugins,
 	}
 );
 
+$t_plugins_backups = plugins_find_all_backups();
+uasort( $t_plugins_backedup,
+	function ( $p_p1, $p_p2 ) {
+		return strcasecmp( $p_p1->name, $p_p2->name );
+	}
+);
+
 $t_plugins_installed = array();
 $t_plugins_available = array();
 
@@ -125,8 +132,11 @@ if( 0 < count( $t_plugins_installed ) ) {
 
 			<tbody>
 <?php
-$t_count = 0;
+
 $t_github_api_exhausted = false;
+
+# hack, for whatever reason the first embedded form is taking the main <form> action/url, win10 chrome
+echo '<form class="form-inline"></form>';
 
 foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	$t_description = string_display_line_links( $t_plugin->description );
@@ -269,10 +279,10 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 			log_event( LOG_PLUGIN, "PluginManagement: Comparing version: Current '%s' New '%s'", $t_plugin->version, $t_new_release['version'] );
 			if (version_compare($t_new_release['version'], $t_plugin->version) === 1) {              
 				if ( $t_new_release['zipball_url'] != null ) {
-					plugins_print_button_download( $t_plugin->name, plugin_lang_get( 'update_get' ) . ' v' . $t_new_release['version'], $t_new_release['zipball_url'] );
+					plugins_print_button_download( $t_basename, $t_plugin->version, $t_new_release['version'], plugin_lang_get( 'update_get' ) . ' v' . $t_new_release['version'], $t_new_release['zipball_url'] );
 				}
 				else if ( $t_new_release['tarball_url'] != null ) {
-					plugins_print_button_download( $t_plugin->name, plugin_lang_get( 'update_get' ) . ' v' . $t_new_release['version'], $t_new_release['tarball_url'] );
+					plugins_print_button_download( $t_basename, $t_plugin->version, $t_new_release['version'], plugin_lang_get( 'update_get' ) . ' v' . $t_new_release['version'], $t_new_release['tarball_url'] );
 				}
 			}
 		}
@@ -286,11 +296,6 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 		echo '</span></td>';
 	}
 	echo '</tr></table></td></tr>';
-
-	$t_count++;
-	if ($t_count > 10)
-	 break;
-
 } ?>
 			</tbody>
 		</table>

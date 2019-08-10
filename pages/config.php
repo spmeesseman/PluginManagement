@@ -18,7 +18,7 @@ $view_threshhold = plugin_config_get('view_threshold_level');
 	<div class="space-10"></div>
 	<div id="config-div" class="form-container">
 		<form id="config-form" method="post" action="<?php echo plugin_page('config_edit') ?>">
-		    <?php echo form_security_field( 'plugin_Plugins_config_edit' ) ?>
+		    <?php echo form_security_field( 'plugin_PluginManagement_config_edit' ) ?>
 			<div class="widget-box widget-color-blue2">
 				<div class="widget-header widget-header-small">
 					<h4 class="widget-title lighter">
