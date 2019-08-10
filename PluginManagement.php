@@ -6,14 +6,13 @@
 require_once('core/plugins_api.php');
 
 
-class PluginsPlugin extends MantisPlugin
+class PluginManagementPlugin extends MantisPlugin
 {
 
     function register() 
     {
 		$this->name = plugin_lang_get("title");
         $this->description = plugin_lang_get("description");
-        $this->page = 'config';
 
         $this->version = "0.0.1";
         $this->requires = array(
@@ -70,7 +69,7 @@ class PluginsPlugin extends MantisPlugin
     {
         if (access_has_global_level(plugin_config_get('view_threshold_level'))) {
             return array(
-                '<a href="' . plugin_page( 'plugins' ) . '">' . plugin_lang_get( 'management_title' ) . '</a>',
+                '<a href="' . plugin_page( 'plugin_page' ) . '">' . plugin_lang_get( 'management_title' ) . '</a>',
             );
         }
 
