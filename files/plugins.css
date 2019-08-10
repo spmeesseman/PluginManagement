@@ -1,0 +1,6 @@
+span.version_dated		    { color: rgb(207, 54, 54) }
+span.no_release		        { color: purple; }
+span.dependency_dated		{ color: maroon; }
+span.dependency_met			{ color: green; }
+span.dependency_unmet		{ color: red; }
+span.dependency_upgrade		{ color: orange; }

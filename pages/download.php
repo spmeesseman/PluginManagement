@@ -13,7 +13,7 @@ $t_success = plugins_update_plugin($f_plugin_name, $f_download_url);
 
 form_security_purge('plugin_Plugins_download');
 
-$t_redirect_url = plugin_page('plugins', true) . '&tab=' . plugin_lang_get('management_update_title');
+$t_redirect_url = plugin_page('plugins', true) . '&tab=' . plugin_lang_get('update_title');
 
 if (!$t_success) {
 	plugins_print_failure_and_redirect($t_redirect_url, 'Could not update the\'' . $f_plugin_name . '\' plugin', true);

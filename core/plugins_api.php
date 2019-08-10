@@ -4,13 +4,13 @@ use splitbrain\PHPArchive\Tar;
 function plugins_get_button_clear( $p_tab, $p_action, $p_param = '' )
 {
     return '<span class="pull-right">
-                <form method="post" action="' . plugin_page( 'plugins_edit' ) . '" title= "' . plugin_lang_get( 'management_log_clear' ) . '" class="form-inline">
+                <form method="post" action="' . plugin_page( 'plugins_edit' ) . '" title= "' . plugin_lang_get( 'log_clear' ) . '" class="form-inline">
                     ' . form_security_field( 'plugin_Plugins_plugins_edit' ) . '
                     <input type="hidden" name="action" value="' . $p_action . '" />
                     <input type="hidden" name="param" value="' . $p_param . '" />
                     <input type="hidden" name="tab" value="' . $p_tab . '" />
                     <input type="hidden" name="id" value="0" />
-                    <input type="submit" name="submit" class="btn btn-primary btn-sm btn-white btn-round plugins-clear" value="' . plugin_lang_get( 'management_log_clear' ) . '" />
+                    <input type="submit" name="submit" class="btn btn-primary btn-sm btn-white btn-round plugins-clear" value="' . plugin_lang_get( 'log_clear' ) . '" />
                 </form>
             </span>';
 }
@@ -48,7 +48,7 @@ function plugins_get_button_add_email()
 
 function plugins_print_button_download( $p_plugin_name, $p_text, $p_download_url )
 {
-    echo '<form method="post" action="' . plugin_page( 'download' ) . '" title= "' . plugin_lang_get( 'management_update_download_tooltip' ) . '"  class="form-inline">
+    echo '<form method="post" action="' . plugin_page( 'download' ) . '" title= "' . plugin_lang_get( 'update_download_tooltip' ) . '"  class="form-inline">
             ' . form_security_field( 'plugin_Plugins_download' ) . '
             <input type="hidden" name="plugin_name" value="' . $p_plugin_name . '" />
             <input type="hidden" name="download_url" value="' . $p_download_url . '" />
@@ -181,7 +181,7 @@ function plugins_update_plugin( $p_plugin_name, $p_download_url )
  * @param MantisPlugin $p_plugin Plugin basename.
  * @return boolean True if plugin has a new version available
  */
-function plugins_get_latest_release( MantisPlugin $p_plugin ) 
+function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name ) 
 {
     $t_jso = null;
     $t_release_name = null;
@@ -190,11 +190,11 @@ function plugins_get_latest_release( MantisPlugin $p_plugin )
     $t_changelog = null;
     $t_version = null;
 
-	if ( $p_plugin->name == "MantisBT Core" ) {
-        return $t_release_name;
+	if ( strstr($p_plugin_name, "MantisBT ") != false ) {
+        return null;
     }
 
-    log_event( LOG_PLUGIN, "PluginManagement: Check latest release for %s", $p_plugin->name );
+    log_event( LOG_PLUGIN, "PluginManagement: Check latest release for %s", $p_plugin_name );
 
     #
     # Use curl to send GiHub API request
@@ -203,7 +203,7 @@ function plugins_get_latest_release( MantisPlugin $p_plugin )
     if ( !is_blank( plugin_config_get( 'github_api_token', '' ) ) )
     {
         curl_setopt_array($curl, [
-            CURLOPT_URL => "https://api.github.com/repos/mantisbt-plugins/" . $p_plugin->basename  . "/releases/latest",
+            CURLOPT_URL => "https://api.github.com/repos/mantisbt-plugins/" . $p_plugin_basename  . "/releases/latest",
             CURLOPT_HTTPHEADER => [
                 "Accept: application/vnd.github.v3+json",
                 "Content-Type: application/json",
@@ -217,7 +217,7 @@ function plugins_get_latest_release( MantisPlugin $p_plugin )
     }
     else {
         curl_setopt_array( $curl, [
-            CURLOPT_URL => "https://api.github.com/repos/mantisbt-plugins/" . $p_plugin->basename  . "/releases/latest",
+            CURLOPT_URL => "https://api.github.com/repos/mantisbt-plugins/" . $p_plugin_basename  . "/releases/latest",
             CURLOPT_HTTPHEADER => [
                 "Accept: application/vnd.github.v3+json",
                 "Content-Type: application/json",
@@ -240,25 +240,51 @@ function plugins_get_latest_release( MantisPlugin $p_plugin )
         {
             log_event(LOG_PLUGIN, "PluginManagement: Response 200 - %s", $t_response);
             $t_jso = json_decode($t_response, true);
-            if ( !is_blank( $t_jso['name'] ) )
+            #
+            # Check response
+            #
+            # Example rate limit exceeded:
+            #
+            # Response 200 - {
+            #   "message":"API rate limit exceeded for 40.85.161.174.",
+            #    "documentation_url":"https://developer.github.com/v3/#rate-limiting"
+            # }
+            #
+            if ( !is_blank( $t_jso['message'] ) )
             {
-                $t_release_name = $t_jso['name'];
-                $t_zipball_url = $t_jso['zipball_url'];
-                $t_tarball_url = $t_jso['tarball_url'];
-                $t_changelog = $t_jso['body'];
+                return array(
+                    "success" => false,
+                    "error_message" => $t_jso['message']
+                );
             }
+            else 
+            {
+                if ( !is_blank( $t_jso['name'] ) )
+                {
+                    $t_release_name = $t_jso['name'];
+                    $t_zipball_url = $t_jso['zipball_url'];
+                    $t_tarball_url = $t_jso['tarball_url'];
+                    $t_changelog = $t_jso['body'];
+                }
+                else {
+                    return array(
+                        "success" => false,
+                        "error_message" => plugin_lang_get( 'ghapi_missing_release_name' )
+                    );
+                }
 
-            preg_match_all( "/[0-9].[0-9].[0-9]/", $t_release_name, $t_matches );
-            foreach( $t_matches[0] as $t_substring ) {
-                $t_version = $t_substring;
-                break;
+                preg_match_all( "/[0-9].[0-9].[0-9]/", $t_release_name, $t_matches );
+                foreach( $t_matches[0] as $t_substring ) {
+                    $t_version = $t_substring;
+                    break;
+                }
+
+                log_event( LOG_PLUGIN, "PluginManagement: Version: %s", $t_version );
+                log_event( LOG_PLUGIN, "PluginManagement: Release name: %s", $t_release_name );
+                log_event( LOG_PLUGIN, "PluginManagement: Zipball URL: %s", $t_zipball_url );
+                log_event( LOG_PLUGIN, "PluginManagement: Tarball URL: %s", $t_tarball_url );
+                log_event( LOG_PLUGIN, "PluginManagement: Changelog: %s", $t_changelog );
             }
-
-            log_event( LOG_PLUGIN, "PluginManagement: Version: %s", $t_version );
-            log_event( LOG_PLUGIN, "PluginManagement: Release name: %s", $t_release_name );
-            log_event( LOG_PLUGIN, "PluginManagement: Zipball URL: %s", $t_zipball_url );
-            log_event( LOG_PLUGIN, "PluginManagement: Tarball URL: %s", $t_tarball_url );
-            log_event( LOG_PLUGIN, "PluginManagement: Changelog: %s", $t_changelog );
         }
         catch (Exception $e) 
         {
@@ -270,6 +296,7 @@ function plugins_get_latest_release( MantisPlugin $p_plugin )
     }
     
 	return array(
+        "success" => true,
         "name" => $t_release_name,
         "version" => $t_version,
         "zipball_url" => $t_zipball_url,
@@ -286,6 +313,24 @@ function plugins_get_mantis_base_url()
       isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http',
       $_SERVER['SERVER_NAME']
     );
+}
+
+
+function plugins_print_alert($p_message)
+{
+    echo '<div class="container-fluid">';
+	echo '<div class="col-md-12 col-xs-12">';
+	echo '<div class="space-0"></div>';
+	echo '<div class="alert alert-warning center">';
+    $t_message = 'operation_warnings';
+	if( is_blank( $p_message ) ) {
+		$t_message = lang_get( $t_message );
+    } 
+    else {
+		$t_message = $p_message;
+	}
+	echo '<p class="bold bigger-110">' . $t_message  . '</p><br />';
+	echo '</div></div></div>', PHP_EOL;
 }
 
 

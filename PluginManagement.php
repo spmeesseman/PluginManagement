@@ -11,15 +11,16 @@ class PluginManagementPlugin extends MantisPlugin
 
     function register() 
     {
-		$this->name = plugin_lang_get("title");
-        $this->description = plugin_lang_get("description");
+		$this->name = plugin_lang_get( "title" );
+        $this->description = plugin_lang_get( "description" );
+        $this->page = "config";
 
         $this->version = "0.0.1";
         $this->requires = array(
             "MantisCore" => "2.0.0",
         );
 
-        $this->author = "Scott Meesseman";
+        $this->author = "Scott Meesseman, MantisBT Team";
         $this->contact = "spmeesseman@gmail.com";
         $this->url = "https://github.com/mantisbt-plugins/Plugins";
     }
@@ -28,8 +29,8 @@ class PluginManagementPlugin extends MantisPlugin
     function init() 
     {
         $t_inc = get_include_path();
-        $t_core = config_get_global('core_path');
-        $t_path = config_get_global('plugin_path'). plugin_get_current() . DIRECTORY_SEPARATOR . 'core'. DIRECTORY_SEPARATOR;
+        $t_core = config_get_global( 'core_path' );
+        $t_path = config_get_global( 'plugin_path' ). plugin_get_current() . DIRECTORY_SEPARATOR . 'core'. DIRECTORY_SEPARATOR;
         if (strstr($t_inc, $t_core) == false) {
             set_include_path($t_inc . PATH_SEPARATOR . $t_core . PATH_SEPARATOR . $t_path);
         }
@@ -64,12 +65,18 @@ class PluginManagementPlugin extends MantisPlugin
         http_csp_add('img-src', $t_protocol . 'img.shields.io/');
     }
     
-    
+
+    function resources($event) 
+    {
+        return '<link rel="stylesheet" type="text/css" href="'.plugin_file("plugins.css").'"/>';
+    }
+
+
     function plugins_menu() 
     {
         if (access_has_global_level(plugin_config_get('view_threshold_level'))) {
             return array(
-                '<a href="' . plugin_page( 'plugin_page' ) . '">' . plugin_lang_get( 'management_title' ) . '</a>',
+                '<a href="' . plugin_page( 'plugin_page' ) . '">' . plugin_lang_get( 'title' ) . '</a>',
             );
         }
 

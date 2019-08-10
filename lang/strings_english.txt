@@ -9,14 +9,24 @@ $s_plugin_PluginManagement_config = 'Configuration';
 $s_plugin_PluginManagement_update_config = 'Update Configuration';
 $s_plugin_PluginManagement_field_github_api_token = 'GitHub API Token';
 
-$s_plugin_PluginManagement_management_title = 'Plugin Management';
-$s_plugin_PluginManagement_management_confirm_clear = 'Are you sure you want clear/delete all items?';
+$s_plugin_PluginManagement_title = 'Plugin Management';
+$s_plugin_PluginManagement_confirm_clear = 'Are you sure you want clear/delete all items?';
 
-$s_plugin_PluginManagement_management_info_title = 'Info';
-$s_plugin_PluginManagement_management_info_label = 'README.md';
-$s_plugin_PluginManagement_management_info_changelog_label = 'CHANGELOG.md';
+$s_plugin_PluginManagement_info_title = 'Info';
+$s_plugin_PluginManagement_info_label = 'README.md';
+$s_plugin_PluginManagement_info_changelog_label = 'CHANGELOG.md';
 
-$s_plugin_PluginManagement_management_update_title = 'Updates';
-$s_plugin_PluginManagement_management_update_get = 'Get';
+$s_plugin_PluginManagement_update_title = 'Updates';
+$s_plugin_PluginManagement_update_get = 'Get';
 
-$s_plugin_PluginManagement_management_update_download_tooltip = 'Download and install';
+$s_plugin_PluginManagement_update_download_tooltip = 'Download and install';
+
+$s_plugin_PluginManagement_use_authentication = 'Set a GitHub API token in Plugin Management Settings to get rid of this restriction';
+$s_plugin_PluginManagement_version_dated = 'outdated version';
+
+$s_plugin_PluginManagement_current_version = 'Current Version';
+$s_plugin_PluginManagement_latest_version = 'Latest Version';
+$s_plugin_PluginManagement_no_versions_found = 'Not found';
+$s_plugin_PluginManagement_api_requests_exhausted = 'GitHub API Exhausted';
+
+$s_plugin_PluginManagement_ghapi_missing_release_name = 'A release name was not received';

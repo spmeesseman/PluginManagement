@@ -55,6 +55,10 @@ access_ensure_global_level( config_get( 'manage_plugin_threshold' ) );
 
 layout_page_header( lang_get( 'manage_plugin_link' ) );
 
+layout_page_header_begin(lang_get( 'manage_plugin_link' ) );
+echo "\t" . '<link rel="stylesheet" type="text/css" href="'.plugin_file("plugins.css").'"/>' . "\n";
+layout_page_header_end();
+
 layout_page_begin( 'manage_overview_page.php' );
 
 print_manage_menu( 'PluginManagement/plugin_page' );
@@ -122,6 +126,8 @@ if( 0 < count( $t_plugins_installed ) ) {
 			<tbody>
 <?php
 $t_count = 0;
+$t_github_api_exhausted = false;
+
 foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	$t_description = string_display_line_links( $t_plugin->description );
 	$t_author = $t_plugin->author;
@@ -132,15 +138,15 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	$t_depends = array();
 	$t_priority = plugin_priority( $t_basename );
 	$t_protected = plugin_protected( $t_basename );
-
-	$t_name = string_display_line( $t_plugin->name.' '.$t_plugin->version );
+	
+	$t_name = string_display_line( $t_plugin->name );
 	if( !is_blank( $t_page ) ) {
 		$t_name = '<a href="' . string_attribute( plugin_page( $t_page, false, $t_basename ) ) . '">' . $t_name . '</a>';
 	}
 
 	if( !empty( $t_author ) ) {
 		if( is_array( $t_author ) ) {
-			$t_author = implode( $t_author, ', ' );
+			$t_author = implode( ', ', $t_author );
 		}
 		if( !is_blank( $t_contact ) ) {
 			$t_author = '<br />' . sprintf( lang_get( 'plugin_author' ),
@@ -156,9 +162,56 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 
 	$t_upgrade = plugin_needs_upgrade( $t_plugin );
 
-	$t_new_release = plugins_get_latest_release( $t_plugin );
+	$t_new_release = null;
+	$t_github_release_found = false;
 
-	if( is_array( $t_requires ) ) {
+	if ( strstr( $t_name, "MantisBT ") != false || strstr( $t_name, "Mantis Graphs") != false || strstr( $t_name, "Avatars via Gravatar") != false ) {
+        $t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
+	}
+	else {
+		$t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
+		$t_github_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;';
+
+		if ( !$t_github_api_exhausted ) {
+			$t_new_release = plugins_get_latest_release( $t_basename, $t_name );
+		}
+		
+		if ( $t_new_release != null ) {
+			if ( !is_blank( $t_new_release['error_message'] ) ) {
+				if ( stristr ( $t_new_release['error_message'], "limit exceeded" ) != false ) {
+					$t_github_api_exhausted = true;
+					$t_github_release_desc .= plugin_lang_get( 'api_requests_exhausted' );
+				}
+				else if ( stristr ( $t_new_release['error_message'], "not found" ) != false ) {
+					$t_github_release_found = false;
+					$t_github_release_desc .= plugin_lang_get( 'no_versions_found' );
+				}
+			}
+			else if ( $t_new_release['version'] != null ) {  
+				if (version_compare($t_new_release['version'], $t_plugin->version) === 1) {
+					$t_github_release_desc = '<br /><span class="version_dated">' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version . '</span>';
+				}
+				else {
+					$t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
+				}
+				$t_github_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;' . $t_new_release['version'];
+				$t_github_release_found = true;
+			}
+			else {
+				$t_github_release_desc .= plugin_lang_get( 'no_versions_found' );
+			}
+		}
+		else {
+			if ( $t_github_api_exhausted ) {
+				$t_github_release_desc .= plugin_lang_get( 'api_requests_exhausted' );
+			}
+			else {
+				$t_github_release_desc .= plugin_lang_get( 'no_versions_found' );
+			}
+		}
+	}
+
+	if ( is_array( $t_requires ) ) {
 		foreach( $t_requires as $t_req_plugin => $t_version ) {
 			$t_dependency = plugin_dependency( $t_req_plugin, $t_version );
 			if( 1 == $t_dependency ) {
@@ -176,14 +229,14 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	}
 
 	if( 0 < count( $t_depends ) ) {
-		$t_depends = implode( $t_depends, '<br />' );
+		$t_depends = implode( '<br />', $t_depends );
 	} else {
 		$t_depends = '<span class="small dependency_met">' . lang_get( 'plugin_no_depends' ) . '</span>';
 	}
 
 	echo '<tr>';
-	echo '<td class="small center">',$t_name,'<input type="hidden" name="change_',$t_basename,'" value="1"/></td>';
-	echo '<td class="small">',$t_description,$t_author,$t_url,'</td>';
+	echo '<td class="small">',$t_name,$t_github_release_desc,'<input type="hidden" name="change_',$t_basename,'" value="1"/></td>';
+	echo '<td class="small">',$t_description,$t_author,$t_url,$t_release_desc,'</td>';
 	echo '<td class="small center">',$t_depends,'</td>';
 	if( 'MantisCore' == $t_basename ) {
 		echo '<td>&#160;</td><td>&#160;</td>';
@@ -209,17 +262,17 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 			lang_get( 'plugin_upgrade' ), 'btn-xs' );
 		echo '</span></td>';
 	}
-	else if( $t_new_release != null && $t_new_release['name'] != null ) 
+	else if( $t_github_release_found ) 
 	{
 		echo '<td><span class="pull-right padding-right-2">';
 		if ($t_new_release['version'] != null) {                                                 
 			log_event( LOG_PLUGIN, "PluginManagement: Comparing version: Current '%s' New '%s'", $t_plugin->version, $t_new_release['version'] );
 			if (version_compare($t_new_release['version'], $t_plugin->version) === 1) {              
 				if ( $t_new_release['zipball_url'] != null ) {
-					plugins_print_button_download( $t_plugin->name, plugin_lang_get( 'management_update_get' ) . ' v' . $t_new_release['version'], $t_new_release['zipball_url'] );
+					plugins_print_button_download( $t_plugin->name, plugin_lang_get( 'update_get' ) . ' v' . $t_new_release['version'], $t_new_release['zipball_url'] );
 				}
 				else if ( $t_new_release['tarball_url'] != null ) {
-					plugins_print_button_download( $t_plugin->name, plugin_lang_get( 'management_update_get' ) . ' v' . $t_new_release['version'], $t_new_release['tarball_url'] );
+					plugins_print_button_download( $t_plugin->name, plugin_lang_get( 'update_get' ) . ' v' . $t_new_release['version'], $t_new_release['tarball_url'] );
 				}
 			}
 		}
@@ -235,7 +288,7 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	echo '</tr></table></td></tr>';
 
 	$t_count++;
-	if ($t_count > 0)
+	if ($t_count > 10)
 	 break;
 
 } ?>
@@ -299,7 +352,7 @@ if( 0 < count( $t_plugins_available ) ) {
 
 		if( !empty( $t_author ) ) {
 			if( is_array( $t_author ) ) {
-				$t_author = implode( $t_author, ', ' );
+				$t_author = implode( ', ', $t_author );
 			}
 			if( !is_blank( $t_contact ) ) {
 				$t_author = '<br />' . sprintf( lang_get( 'plugin_author' ),
@@ -330,7 +383,7 @@ if( 0 < count( $t_plugins_available ) ) {
 		}
 
 		if( 0 < count( $t_depends ) ) {
-			$t_depends = implode( $t_depends, '<br />' );
+			$t_depends = implode( '<br />', $t_depends );
 		} else {
 			$t_depends = '<span class="small dependency_met">' . lang_get( 'plugin_no_depends' ) . '</span>';
 		}
@@ -361,12 +414,13 @@ if( 0 < count( $t_plugins_available ) ) {
 <div class="center">
 	<div class="space-10"></div>
 	<div class="well well-sm">
-		<i class="ace-icon fa fa-key"></i>
-	<?php echo lang_get('plugin_key_label') ?>
-	<span class='dependency_met'><?php echo lang_get( 'plugin_key_met' ) ?></span>,
-	<span class='dependency_unmet'><?php echo lang_get( 'plugin_key_unmet' ) ?></span>,
-	<span class='dependency_dated'><?php echo lang_get( 'plugin_key_dated' ) ?></span>,
-	<span class='dependency_upgrade'><?php echo lang_get( 'plugin_key_upgrade' ) ?></span>.
+		<i class="ace-icon fa fa-key"></i> &nbsp;
+	<?php echo lang_get('plugin_key_label') ?> &nbsp;
+	<span class='dependency_met'><?php echo lang_get( 'plugin_key_met' ) ?></span> |
+	<span class='dependency_unmet'><?php echo lang_get( 'plugin_key_unmet' ) ?></span> |
+	<span class='dependency_dated'><?php echo lang_get( 'plugin_key_dated' ) ?></span> |
+	<span class='version_dated'><?php echo plugin_lang_get( 'version_dated' ) ?></span> |
+	<span class='dependency_upgrade'><?php echo lang_get( 'plugin_key_upgrade' ) ?></span>
 	</div>
 </div>
 <?php
