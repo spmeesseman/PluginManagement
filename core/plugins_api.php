@@ -9,7 +9,7 @@ function plugins_archive_plugin( $p_plugin_name, $p_plugin_version )
     $t_zip = new ZipArchiveEx();
     $t_path = config_get_global( 'plugin_path' ) . DIRECTORY_SEPARATOR . $p_plugin_name;
     log_event( LOG_PLUGIN, "PluginManagement: Archive plugin %s v%s path = %s", $p_plugin_name, $p_plugin_version, $t_path );
-    $t_filename = plugins_get_backup_dir() . $p_plugin_name . '--v' . $p_plugin_version . '.zip';
+    $t_filename = plugins_get_backup_dir() . $p_plugin_name . '--' . $p_plugin_version . '.zip';
     if ( $t_zip->open( $t_filename, ZipArchive::CREATE | ZipArchive::OVERWRITE ) !== true ) {
         trigger_error( plugin_lang_get( 'backup failed' ) );
     }
@@ -129,21 +129,54 @@ function plugins_delete_dir($p_path)
 
 function plugins_find_all_backups() 
 {
-	$t_plugin_path = config_get_global( 'plugin_path' ) . DIRECTORY_SEPARATOR . 'backup';
+	$t_plugin_path = plugins_get_backup_dir();
 	$t_plugins = array();
+    log_event( LOG_PLUGIN, "find_all" );
 	if( $t_dir = opendir( $t_plugin_path ) ) {
 		while( ( $t_file = readdir( $t_dir ) ) !== false ) {
-			if( '.' == $t_file || '..' == $t_file ) {
+            log_event( LOG_PLUGIN, "find_all: file %s", $t_file  );
+			if ( '.' == $t_file || '..' == $t_file ) {
 				continue;
 			}
-			if( is_dir( $t_plugin_path . $t_file ) ) {
-				$t_plugin = plugin_register( $t_file, true );
-				if( !is_null( $t_plugin ) ) {
-					$t_plugins[$t_file] = $t_plugin;
-				}
+			if ( is_file( $t_plugin_path . $t_file ) ) {
+				$t_plugin_basename = substr( $t_file, 0, strpos( $t_file, '--') );
+                $t_plugin_version = str_replace( '.zip', '', substr( $t_file, strpos( $t_file, '--' ) + 2 ));
+                $t_plugin = plugin_register( $t_plugin_basename, true );
+
+                $t_classname = $t_plugin_basename . 'Plugin';
+                $t_child = null;
+
+                # Include the plugin script if the class is not already declared.
+                if( !class_exists( $t_classname ) ) {
+                    if( !plugin_include( $t_plugin_basename, $t_child ) ) {
+                        return null;
+                    }
+                }
+
+                # Make sure the class exists and that it's of the right type.
+                if( class_exists( $t_classname ) && is_subclass_of( $t_classname, 'MantisPlugin' ) ) {
+                    plugin_push_current( is_null( $t_child ) ? $t_plugin_basename : $t_child );
+
+                    $t_plugin = new $t_classname( is_null( $t_child ) ? $t_plugin_basename : $t_child );
+
+                    plugin_pop_current();
+
+                    # Final check on the class
+                    if( is_null( $t_plugin->name ) || is_null( $t_plugin->version ) ) {
+                        return null;
+                    }
+
+                    if ( $t_plugin ) {
+                        $t_plugin->version = $t_plugin_version;
+                        $t_plugins[$t_plugin_basename] = $t_plugin;
+                    }
+                } else {
+                    error_parameters( $t_plugin_basename, $t_classname );
+                    trigger_error( ERROR_PLUGIN_CLASS_NOT_FOUND, ERROR );
+                } 
 			}
 		}
-		closedir( $t_dir );
+        closedir( $t_dir );
 	}
 	return $t_plugins;
 }
@@ -302,6 +335,8 @@ function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_pl
     # Backup
     #
     $t_archive_path = plugins_archive_plugin( $p_plugin_name, $p_plugin_current_version );
+    #$t_archive_path =  plugins_get_backup_dir() . $p_plugin_name . '--v' . $p_plugin_current_version;
+    #plugins_copy_recursive($t_plugin_dir, $t_archive_path);
 
     log_event( LOG_PLUGIN, "PluginManagement: Download %s", $p_download_url );
 
@@ -385,7 +420,6 @@ function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_pl
         unlink( $t_release_file );
     }
     if ( is_dir( $t_dest_dir ) ) {
-        log_event( LOG_PLUGIN, "PluginManagement: 1"  );
         plugins_delete_dir( $t_dest_dir );
     }
 

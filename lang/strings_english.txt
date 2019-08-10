@@ -29,5 +29,6 @@ $s_plugin_PluginManagement_latest_version = 'Latest Version';
 $s_plugin_PluginManagement_no_versions_found = 'Not found';
 $s_plugin_PluginManagement_api_requests_exhausted = 'GitHub API Exhausted';
 $s_plugin_PluginManagement_backup_failed = 'Backup failed';
+$s_plugin_PluginManagement_plugins_backed_up = 'Installed Plugins - Previous Versions';
 
 $s_plugin_PluginManagement_ghapi_missing_release_name = 'A release name was not received';
