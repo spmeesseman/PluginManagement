@@ -311,8 +311,8 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 <?php
 }
 
-layout_ex_section($t_plugins_available);
-layout_ex_section($t_plugins_backups, true);
+layout_ex_section($t_plugins, $t_plugins_available);
+layout_ex_section($t_plugins, $t_plugins_backups, true);
 
 ?>
 
@@ -332,11 +332,13 @@ layout_ex_section($t_plugins_backups, true);
 echo '</div>';
 layout_page_end();
 
-function layout_ex_section($p_plugins, $p_is_backup = false)
+function layout_ex_section($p_plugins, $p_plugins_group, $p_is_backup = false)
 {
-	if ( count( $p_plugins ) == 0 ) {
+	if ( count( $p_plugins_group ) == 0 ) {
 		return;
 	}
+
+	$t_title = ( !$p_is_backup ? lang_get('plugins_available') : plugin_lang_get('plugins_backed_up') );
 
 	echo '
 	<div class="space-10"></div>
@@ -344,7 +346,7 @@ function layout_ex_section($p_plugins, $p_is_backup = false)
 		<div class="widget-header widget-header-small">
 			<h4 class="widget-title lighter">
 				<i class="ace-icon fa fa-cube"></i>
-				' . plugin_lang_get('plugins_backed_up') . '
+				' . $t_title . '
 			</h4>
 		</div>
 
@@ -369,7 +371,7 @@ function layout_ex_section($p_plugins, $p_is_backup = false)
 			</thead>
 			<tbody>';
 
-	foreach ( $p_plugins as $t_basename => $t_plugin ) {
+	foreach ( $p_plugins_group as $t_basename => $t_plugin ) {
 		$t_description = string_display_line_links( $t_plugin->description );
 		$t_author = $t_plugin->author;
 		$t_contact = $t_plugin->contact;
@@ -425,7 +427,8 @@ function layout_ex_section($p_plugins, $p_is_backup = false)
 		if( $t_ready ) {
 			print_small_button(
 			plugin_page( 'install' ) . '&name=' . $t_basename . form_security_param( 'manage_plugin_install' ) . 
-			             '&version=' . $t_plugin->version . '&restore=' . ($p_is_backup === true ? '1' : '0'), lang_get( 'plugin_install' ) );
+						 '&version=' . $t_plugin->version . '&restore=' . ($p_is_backup === true ? '1' : '0'), 
+						 ($p_is_backup !== true ? lang_get( 'plugin_install' ) : plugin_lang_get( 'restore' ) ) );
 		}
 		echo '</td></tr>';
 	}

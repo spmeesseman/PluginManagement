@@ -40,6 +40,7 @@ $s_plugin_PluginManagement_download_success = 'Successfully downloaded and insta
 $s_plugin_PluginManagement_download_failure = 'Failed to download and install plugin';
 $s_plugin_PluginManagement_install_success = 'Successfully installed plugin';
 $s_plugin_PluginManagement_install_failure = 'Failed to install plugin';
+$s_plugin_PluginManagement_restore = 'Restore';
 $s_plugin_PluginManagement_restore_success = 'Successfully restored plugin';
 $s_plugin_PluginManagement_restore_failure = 'Failed to restore plugin';
 $s_plugin_PluginManagement_uninstall_success = 'Successfully uninstalled plugin';
