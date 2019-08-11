@@ -74,5 +74,5 @@ TODO
 
 ## Todos
 
-[ ] make all default actions work (uninstall/install/etc)
-[ ] Check for available plugins that are not installed
+- [ ] make all default actions work uninstall/install/etc
+- [ ] Check for available plugins that are not installed
