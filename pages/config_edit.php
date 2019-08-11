@@ -6,6 +6,7 @@ form_security_validate( 'plugin_PluginManagement_config_edit' );
 auth_reauthenticate();
 
 access_ensure_global_level(config_get('manage_plugin_threshold'));
+access_ensure_global_level( plugin_config_get( 'edit_threshold_level' ) );
 
 $f_edit_threshold_level = gpc_get_int('edit_threshold_level');
 $f_view_threshold_level = gpc_get_int('view_threshold_level');

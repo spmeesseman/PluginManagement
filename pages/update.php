@@ -47,6 +47,7 @@ form_security_validate( 'manage_plugin_update' );
 
 auth_reauthenticate();
 access_ensure_global_level( config_get( 'manage_plugin_threshold' ) );
+access_ensure_global_level( plugin_config_get( 'edit_threshold_level' ) );
 
 $t_query = 'SELECT basename FROM {plugin}';
 $t_result = db_query( $t_query );

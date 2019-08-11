@@ -47,6 +47,7 @@ form_security_validate( 'manage_plugin_install' );
 
 auth_reauthenticate();
 access_ensure_global_level( config_get( 'manage_plugin_threshold' ) );
+access_ensure_global_level( plugin_config_get( 'edit_threshold_level' ) );
 
 $f_basename = gpc_get_string( 'name' );
 $t_plugin = plugin_register( $f_basename, true );

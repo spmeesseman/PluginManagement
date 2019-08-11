@@ -52,6 +52,7 @@ form_security_validate( 'manage_plugin_uninstall' );
 
 auth_reauthenticate();
 access_ensure_global_level( config_get( 'manage_plugin_threshold' ) );
+access_ensure_global_level( plugin_config_get( 'edit_threshold_level' ) );
 
 # register plugins and metadata without initializing
 plugin_register_installed();

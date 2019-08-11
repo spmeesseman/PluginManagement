@@ -5,6 +5,7 @@ require_once('plugins_api.php');
 form_security_validate('plugin_PluginManagement_download');
 auth_reauthenticate();
 access_ensure_global_level(config_get('manage_plugin_threshold'));
+access_ensure_global_level( plugin_config_get( 'edit_threshold_level' ) );
 
 $f_plugin_name = gpc_get_string('plugin_name');
 $f_plugin_current_version = gpc_get_string('plugin_current_version');
