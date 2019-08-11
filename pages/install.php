@@ -50,13 +50,36 @@ auth_reauthenticate();
 access_ensure_global_level( config_get( 'manage_plugin_threshold' ) );
 access_ensure_global_level( plugin_config_get( 'edit_threshold_level' ) );
 
+$f_restore = gpc_get_bool( 'restore' );
 $f_basename = gpc_get_string( 'name' );
-$t_plugin = plugin_register( $f_basename, true );
+$f_version = gpc_get_string( 'version' );
 
-if( !is_null( $t_plugin ) ) {
-	plugin_install( $t_plugin );
+if (!$f_restore) {
+	$t_plugin = plugin_register( $f_basename, true );
+	if( !is_null( $t_plugin ) ) {
+		plugin_install( $t_plugin );
+	}
+}
+else {
+	$t_success = plugins_restore_plugin($f_basename, $f_version);
 }
 
 form_security_purge( 'manage_plugin_install' );
 
-plugins_print_success_and_redirect( plugin_page( 'plugin_page', true ), plugin_lang_get( 'install_success' ) );
+$t_redirect_url = plugin_page( 'plugin_page', true );
+
+if (!$t_success) {
+	if (!$f_restore) {
+		plugins_print_failure_and_redirect($t_redirect_url, plugin_lang_get( 'install_failure' ) . ' \'' . $f_plugin_name . '\'', true);
+	}
+	else {
+		plugins_print_failure_and_redirect($t_redirect_url, plugin_lang_get( 'restore_failure' ) . ' \'' . $f_plugin_name . '\'', true);
+	}
+}
+
+if (!$f_restore) {
+	plugins_print_success_and_redirect( $t_redirect_url, plugin_lang_get( 'install_success' ) );
+}
+else {
+	plugins_print_success_and_redirect( $t_redirect_url, plugin_lang_get( 'restore_success' ) );
+}

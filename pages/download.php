@@ -19,7 +19,7 @@ form_security_purge('plugin_PluginManagement_download');
 $t_redirect_url = plugin_page('plugin_page', true);
 
 if (!$t_success) {
-	plugins_print_failure_and_redirect($t_redirect_url, 'Could not update the\'' . $f_plugin_name . '\' plugin', true);
+	plugins_print_failure_and_redirect($t_redirect_url, plugin_lang_get( 'download_failure' ) . ' \'' . $f_plugin_name . '\'', true);
 }
 
 plugins_print_success_and_redirect( $t_redirect_url, plugin_lang_get( 'download_success' ) . ' \'' . $f_plugin_name . '\'');
