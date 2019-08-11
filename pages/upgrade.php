@@ -35,6 +35,8 @@
 define( 'PLUGINS_DISABLED', true );
 
 require_once( 'core.php' );
+require_once('plugins_api.php');
+require_once('plugins_api.php');
 require_api( 'access_api.php' );
 require_api( 'authentication_api.php' );
 require_api( 'config_api.php' );
@@ -58,4 +60,4 @@ if( !is_null( $t_plugin ) ) {
 
 form_security_purge( 'manage_plugin_upgrade' );
 
-print_successful_redirect( 'plugin_page.php' );
+plugins_print_success_and_redirect( plugin_page( 'plugin_page', true ), plugin_lang_get( 'upgrade_success' ) );

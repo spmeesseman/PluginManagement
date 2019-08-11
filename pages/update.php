@@ -35,6 +35,7 @@
 define( 'PLUGINS_DISABLED', true );
 
 require_once( 'core.php' );
+require_once('plugins_api.php');
 require_api( 'access_api.php' );
 require_api( 'authentication_api.php' );
 require_api( 'config_api.php' );
@@ -72,4 +73,4 @@ while( $t_row = db_fetch_array( $t_result ) ) {
 
 form_security_purge( 'manage_plugin_update' );
 
-print_successful_redirect( 'plugin_page.php' );
+plugins_print_success_and_redirect( plugin_page( 'plugin_page', true ), plugin_lang_get( 'update_prio_protected_success' ) );

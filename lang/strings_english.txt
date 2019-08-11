@@ -31,4 +31,15 @@ $s_plugin_PluginManagement_api_requests_exhausted = 'GitHub API Exhausted';
 $s_plugin_PluginManagement_backup_failed = 'Backup failed';
 $s_plugin_PluginManagement_plugins_backed_up = 'Installed Plugins - Previous Versions';
 
+$s_plugin_PluginManagement_update_prio_protected_success = 'Successfully updated priority and protected status';
+$s_plugin_PluginManagement_update_prio_protected_failure = 'Failed to update priority and protected status';
+$s_plugin_PluginManagement_upgrade_success = 'Successfully upgraded plugin';
+$s_plugin_PluginManagement_upgrade_failure = 'Failed to upgrade plugin';
+$s_plugin_PluginManagement_download_success = 'Successfully downloaded and installed plugin';
+$s_plugin_PluginManagement_download_failure = 'Failed to download and install plugin';
+$s_plugin_PluginManagement_install_success = 'Successfully installed plugin';
+$s_plugin_PluginManagement_install_failure = 'Failed to install plugin';
+$s_plugin_PluginManagement_uninstall_success = 'Successfully uninstalled plugin';
+$s_plugin_PluginManagement_uninstall_failure = 'Failed to uninstall plugin';
+
 $s_plugin_PluginManagement_ghapi_missing_release_name = 'A release name was not received';

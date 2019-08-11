@@ -94,7 +94,7 @@ if( 0 < count( $t_plugins_installed ) ) {
 <div class="space-10"></div>
 <div class="form-container">
 
-	<form action="update.php" method="post">
+	<form action="<?php echo plugin_page( 'update' ) ?>" method="post">
 		<fieldset>
 		<?php echo form_security_field( 'manage_plugin_update' ) ?>
 
@@ -268,7 +268,7 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	if( $t_upgrade ) {
 		echo '<td><span class="pull-right padding-right-2">';
         print_link_button(
-			'upgrade.php?name=' . $t_basename . form_security_param( 'manage_plugin_upgrade' ),
+			plugin_page( 'upgrade' ) . '&name=' . $t_basename . form_security_param( 'manage_plugin_upgrade' ),
 			lang_get( 'plugin_upgrade' ), 'btn-xs' );
 		echo '</span></td>';
 	}
@@ -291,7 +291,7 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	if( !$t_protected ) {
 		echo '<td><span class="pull-right padding-right-2">';
 		print_link_button(
-			'uninstall.php?name=' . $t_basename . form_security_param( 'manage_plugin_uninstall' ),
+			plugin_page( 'uninstall' ) . '&name=' . $t_basename . form_security_param( 'manage_plugin_uninstall' ),
 			lang_get( 'plugin_uninstall' ),  'btn-xs' );
 		echo '</span></td>';
 	}
@@ -505,7 +505,7 @@ if( 0 < count( $t_plugins_backups ) ) {
 		echo '<td class="center">';
 		if( $t_ready ) {
 			print_small_button(
-				'install.php?name=' . $t_basename . form_security_param( 'manage_plugin_install' ),
+			plugin_page( 'install' ) . '&name=' . $t_basename . form_security_param( 'manage_plugin_install' ),
 				lang_get( 'plugin_install' ) );
 		}
 		echo '</td></tr>';
