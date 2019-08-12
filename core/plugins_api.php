@@ -314,18 +314,12 @@ function plugins_find_file( $p_folder, $p_pattern )
 function plugins_restore_plugin($p_plugin_name, $p_version_to_restore)
 {
     $t_success = true;
-    $t_mantis_plugin_dir = config_get_global( 'plugin_path' )  . DIRECTORY_SEPARATOR ;
-    $t_plugin_dir = $t_mantis_plugin_dir . $p_plugin_name . DIRECTORY_SEPARATOR;
-    $t_restore_from_dir = plugins_get_backup_dir() . $p_plugin_name . '--' . $p_version_to_restore;
-    $t_current_version = plugin_get_version($p_plugin_name);
-    $t_backup_to_dir =   plugins_get_backup_dir() . $p_plugin_name . '--' . $t_current_version;
-
+    $t_plugin_dir = config_get_global( 'plugin_path' )  . DIRECTORY_SEPARATOR . $p_plugin_name . DIRECTORY_SEPARATOR;
+    $t_restore_from_zip = plugins_get_backup_dir() . $p_plugin_name . '--' . $p_version_to_restore . 'zip';
     # Backup current
-    plugins_copy_recursive( $t_plugin_dir, $t_backup_to_dir );
-
+    plugins_archive_plugin( $p_plugin_name, plugin_get_version($p_plugin_name));
     # Restore requested version
-    plugins_copy_recursive( $t_restore_from_dir, $t_plugin_dir );
-
+    $t_success = plugins_unzip(  $t_restore_from_zip, $t_plugin_dir );
     return $t_success;
 }
 
