@@ -454,11 +454,26 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
     $t_changelog = null;
     $t_version = null;
 
-	if ( strstr($p_plugin_name, "MantisBT ") != false ) {
+	if ( strstr($p_plugin_basename, "MantisBT ") != false ) {
         return null;
     }
 
-    log_event( LOG_PLUGIN, "PluginManagement: Check latest release for %s", $p_plugin_name );
+    $t_plugin_basename = $p_plugin_basename;
+
+    #
+    # Special handling for source-integration
+    #
+    if ( $p_plugin_basename == "Source" ) {
+        $t_plugin_basename = "source-integration";
+    }
+    else if ( strpos( $p_plugin_basename, "Source" ) === 0) {
+        return null;
+    }
+    
+    $t_release_url = "https://api.github.com/repos/mantisbt-plugins/" . $t_plugin_basename  . "/releases/latest";
+
+    log_event( LOG_PLUGIN, "PluginManagement: Check latest release for %s", $t_plugin_basename );
+    log_event( LOG_PLUGIN, "PluginManagement: URL", $t_release_url );
 
     #
     # Use curl to send GiHub API request
@@ -467,7 +482,7 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
     if ( !is_blank( plugin_config_get( 'github_api_token', '' ) ) )
     {
         curl_setopt_array($curl, [
-            CURLOPT_URL => "https://api.github.com/repos/mantisbt-plugins/" . $p_plugin_basename  . "/releases/latest",
+            CURLOPT_URL => $t_release_url,
             CURLOPT_HTTPHEADER => [
                 "Accept: application/vnd.github.v3+json",
                 "Content-Type: application/json",
@@ -481,7 +496,7 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
     }
     else {
         curl_setopt_array( $curl, [
-            CURLOPT_URL => "https://api.github.com/repos/mantisbt-plugins/" . $p_plugin_basename  . "/releases/latest",
+            CURLOPT_URL => $t_release_url,
             CURLOPT_HTTPHEADER => [
                 "Accept: application/vnd.github.v3+json",
                 "Content-Type: application/json",

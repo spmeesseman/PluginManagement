@@ -24,8 +24,8 @@ $s_plugin_PluginManagement_update_download_tooltip = 'Backup current version and
 $s_plugin_PluginManagement_use_authentication = 'Set a GitHub API token in Plugin Management Settings to get rid of this restriction';
 $s_plugin_PluginManagement_version_dated = 'outdated version';
 
-$s_plugin_PluginManagement_current_version = 'Current Version';
-$s_plugin_PluginManagement_latest_version = 'Latest Version';
+$s_plugin_PluginManagement_current_version = 'Installed Version';
+$s_plugin_PluginManagement_latest_version = 'Latest Released Version';
 $s_plugin_PluginManagement_no_versions_found = 'Not found';
 $s_plugin_PluginManagement_api_requests_exhausted = 'GitHub API Exhausted';
 $s_plugin_PluginManagement_backup_failed = 'Backup failed';

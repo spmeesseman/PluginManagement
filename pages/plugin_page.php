@@ -175,7 +175,8 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	$t_new_release = null;
 	$t_github_release_found = false;
 
-	if ( strstr( $t_name, "MantisBT ") != false || strstr( $t_name, "Mantis Graphs") != false || strstr( $t_name, "Avatars via Gravatar") != false ) {
+	if ( strstr( $t_name, "MantisBT ") != false || strstr( $t_name, "Mantis Graphs") != false || strstr( $t_name, "Avatars via Gravatar") != false
+	     || ($t_name != "Source" && strpos( $t_name, "Source" ) === 0 ) ) {
         $t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
 	}
 	else {
