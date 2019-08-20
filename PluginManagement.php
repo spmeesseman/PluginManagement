@@ -78,7 +78,7 @@ class PluginManagementPlugin extends MantisPlugin
     {
         if (access_has_global_level(plugin_config_get('view_threshold_level'))) {
             return array(
-                '<a href="' . plugin_page( 'plugin_page' ) . '">' . plugin_lang_get( 'title' ) . '</a>',
+                '<a href="' . plugin_page( 'plugin_page' ) . '">' . plugin_lang_get( 'page_title' ) . '</a>',
             );
         }
 
