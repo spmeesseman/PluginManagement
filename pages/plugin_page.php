@@ -53,8 +53,6 @@ require_once( 'plugins_api.php' );
 auth_reauthenticate();
 access_ensure_global_level( config_get( 'manage_plugin_threshold' ) );
 
-layout_page_header( lang_get( 'manage_plugin_link' ) );
-
 layout_page_header_begin(lang_get( 'manage_plugin_link' ) );
 echo "\t" . '<link rel="stylesheet" type="text/css" href="'.plugin_file("plugins.css").'"/>' . "\n";
 layout_page_header_end();
@@ -79,6 +77,7 @@ uasort( $t_plugins_backedup,
 
 $t_plugins_installed = array();
 $t_plugins_available = array();
+$f_check_for_updates = gpc_get_bool( 'chkupdates', false );
 
 foreach( $t_plugins as $t_basename => $t_plugin ) {
 	if( plugin_is_registered( $t_basename ) ) {
@@ -183,7 +182,7 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 		$t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
 		$t_github_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;';
 
-		if ( !$t_github_api_exhausted ) {
+		if ( $f_check_for_updates && !$t_github_api_exhausted ) {
 			$t_new_release = plugins_get_latest_release( $t_basename, $t_name );
 		}
 		
@@ -303,6 +302,7 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 		</div>
 		<div class="widget-toolbox padding-8 clearfix">
 			<input type="submit" class="btn btn-sm btn-primary btn-white btn-round" value="<?php echo plugin_lang_get('update_prio_protected') ?>"/>
+			<a class="btn btn-sm btn-primary btn-white btn-round" href="<?php echo plugin_page( 'plugin_page' ) . '&chkupdates=true' ?>"><?php echo plugin_lang_get('updates_check') ?></a>;
 		</div>
 	</div>
 </div>
