@@ -567,7 +567,7 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
         }
         catch (Exception $e) 
         {
-            log_event( LOG_PLUGIN, "PluginManagement: Exception decoding response" );
+            log_event( LOG_PLUGIN, "PluginManagement: Exception decoding response %s", $e->getMessage() );
         }
     }
     else {
