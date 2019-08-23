@@ -48,7 +48,7 @@ The following PHP components are required by this plugin:
 - php-zip
 
     sudo apt install php7.2-zip
-- webserver must have write access to this plugin directory
+- webserver must have write access to each individual plugin directory in order to update them, including this plugin directory
 
 ## Issues and Feature Requests
 

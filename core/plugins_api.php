@@ -382,11 +382,12 @@ function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_pl
     $t_response = curl_exec( $curl );
     curl_close( $curl );
 
-    $t_file = fopen( $t_release_file, "w" ) or die( "Unable to open file for writing" );
+    $t_file = fopen( $t_release_file, "w" );
     if (false === $t_file) {
-        trigger_error( ERROR_FILE_DISALLOWED, ERROR );
+        error_parameters( lang_get( 'select_profile' ) );
+        trigger_error( ERROR_FILE_MOVE_FAILED, ERROR );
     }
-    $t_bytes = fwrite($t_file, $t_response);
+    fwrite($t_file, $t_response);
     fclose($t_file);
 
     #
