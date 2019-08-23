@@ -54,12 +54,25 @@ auth_reauthenticate();
 access_ensure_global_level( config_get( 'manage_plugin_threshold' ) );
 
 layout_page_header_begin(lang_get( 'manage_plugin_link' ) );
-echo "\t" . '<link rel="stylesheet" type="text/css" href="'.plugin_file("plugins.css").'"/>' . "\n";
+echo "\t" . '<link rel="stylesheet" type="text/css" href="'.plugin_file("plugins.css").'" />' . "\n";
+echo "\t" . '<script type="text/javascript" src="'.plugin_file("plugins.js").'" />' . "\n";
 layout_page_header_end();
 
 layout_page_begin( 'manage_overview_page.php' );
 
 print_manage_menu( 'PluginManagement/plugin_page' );
+
+$f_check_for_updates = gpc_get_bool( 'chkupdates', false );
+$g_plugins_cache = array();
+$t_plugin_cache_exists = false;
+$t_plugins_cache = gpc_get_string( 'pcache', '' );
+if ( !is_blank( $t_plugins_cache ) ) 
+{
+	$f_check_for_updates = true;
+	$g_plugins_cache = unserialize( $t_plugins_cache );
+}
+
+$t_plugins_ignore = array( 'MantisBT',  "Mantis Graphs", "Avatars via Gravatar", "Source" );
 
 $t_plugins = plugin_find_all();
 uasort( $t_plugins,
@@ -77,7 +90,6 @@ uasort( $t_plugins_backedup,
 
 $t_plugins_installed = array();
 $t_plugins_available = array();
-$f_check_for_updates = gpc_get_bool( 'chkupdates', false );
 
 foreach( $t_plugins as $t_basename => $t_plugin ) {
 	if( plugin_is_registered( $t_basename ) ) {
@@ -137,7 +149,8 @@ $t_github_api_exhausted = false;
 # hack, for whatever reason the first embedded form is taking the main <form> action/url, win10 chrome
 echo '<form class="form-inline"></form>';
 
-foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
+foreach ( $t_plugins_installed as $t_basename => $t_plugin ) 
+{
 	$t_description = string_display_line_links( $t_plugin->description );
 	$t_author = $t_plugin->author;
 	$t_contact = $t_plugin->contact;
@@ -174,13 +187,15 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 	$t_new_release = null;
 	$t_github_release_found = false;
 
-	if ( strstr( $t_name, "MantisBT ") != false || strstr( $t_name, "Mantis Graphs") != false || strstr( $t_name, "Avatars via Gravatar") != false
-	     || ($t_name != "Source" && strpos( $t_name, "Source" ) === 0 ) ) {
+	if (preg_grep($t_name + '\w*', $t_plugins_ignore)) {
         $t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
 	}
 	else {
 		$t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
-		$t_github_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;';
+
+		if ( $f_check_for_updates ) {
+			$t_github_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;';
+		}
 
 		if ( $f_check_for_updates && !$t_github_api_exhausted ) {
 			$t_new_release = plugins_get_latest_release( $t_basename, $t_name );
@@ -212,11 +227,14 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 			}
 		}
 		else {
-			if ( $t_github_api_exhausted ) {
-				$t_github_release_desc .= plugin_lang_get( 'api_requests_exhausted' );
-			}
-			else {
-				$t_github_release_desc .= plugin_lang_get( 'no_versions_found' );
+			if ($f_check_for_updates )
+			{
+				if ( $t_github_api_exhausted ) {
+					$t_github_release_desc .= plugin_lang_get( 'api_requests_exhausted' );
+				}
+				else {
+					$t_github_release_desc .= plugin_lang_get( 'no_versions_found' );
+				}
 			}
 		}
 	}
@@ -311,6 +329,8 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin ) {
 </div>
 <?php
 }
+
+echo '<script>pcache="' . str_replace( "\r", "", str_replace( "\n", "", str_replace( '"', '\\"', serialize( $g_plugins_cache ) ) ) ) . '";</script>';
 
 layout_ex_section($t_plugins, $t_plugins_available);
 layout_ex_section($t_plugins, $t_plugins_backups, true);
@@ -441,4 +461,5 @@ function layout_ex_section($p_plugins, $p_plugins_group, $p_is_backup = false)
 	</div>
 	</div>
 	</div>';
+
 }

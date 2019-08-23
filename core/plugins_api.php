@@ -3,12 +3,11 @@
 use splitbrain\PHPArchive\Tar;
 
 
-
 function plugins_archive_plugin( $p_plugin_name, $p_plugin_version )
 {
     $t_zip = new ZipArchiveEx();
     $t_path = config_get_global( 'plugin_path' ) . DIRECTORY_SEPARATOR . $p_plugin_name;
-    log_event( LOG_PLUGIN, "PluginManagement: Archive plugin %s v%s path = %s", $p_plugin_name, $p_plugin_version, $t_path );
+    log_event( LOG_PLUGIN, "Archive plugin %s v%s path = %s", $p_plugin_name, $p_plugin_version, $t_path );
     $t_filename = plugins_get_backup_dir() . $p_plugin_name . '--' . $p_plugin_version . '.zip';
     if ( $t_zip->open( $t_filename, ZipArchive::CREATE | ZipArchive::OVERWRITE ) !== true ) {
         trigger_error( plugin_lang_get( 'backup failed' ) );
@@ -77,6 +76,19 @@ function plugins_print_button_download( $p_plugin_name, $p_plugin_current_versio
 }
 
 
+function plugins_print_button_install( $p_plugin_name, $p_plugin_current_version, $p_plugin_lastest_version, $p_text, $p_download_url )
+{
+    echo '<form method="post" action="' . plugin_page( 'download' ) . '" title= "' . plugin_lang_get( 'update_download_tooltip' ) . '"  class="form-inline">
+            ' . form_security_field( 'plugin_PluginManagement_download' ) . '
+            <input type="hidden" name="plugin_name" value="' . $p_plugin_name . '" />
+            <input type="hidden" name="plugin_current_version" value="' . $p_plugin_current_version . '" />
+            <input type="hidden" name="plugin_latest_version" value="' . $p_plugin_lastest_version . '" />
+            <input type="hidden" name="download_url" value="' . $p_download_url . '" />
+            <input type="submit" name="submit" class="btn btn-primary btn-xs btn-white btn-round" value="' . $p_text . '" />
+        </form>';
+}
+
+
 function plugins_copy_recursive( $p_src, $p_dst ) 
 {
     if (! is_dir($p_src)) {
@@ -111,7 +123,7 @@ function plugins_delete_dir($p_path)
     if (! is_dir($p_path)) {
         trigger_error( "$p_path must be a directory" );
     }
-    log_event( LOG_PLUGIN, "PluginManagement: delete dir = %s", $p_path  );
+    log_event( LOG_PLUGIN, "delete dir = %s", $p_path  );
 
     if ( substr($p_path, strlen($p_path) - 1, 1) != DIRECTORY_SEPARATOR ) {
         $p_path .= DIRECTORY_SEPARATOR;
@@ -216,7 +228,7 @@ function plugins_get_backup_dir()
  */
 function plugins_unzip( $p_src_file, $p_dest_dir = false, $p_create_zip_name_dir = true, $p_overwrite = true )
 {
-    log_event( LOG_PLUGIN, "PluginManagement: Unzip %s", $p_src_file );
+    log_event( LOG_PLUGIN, "Unzip %s", $p_src_file );
 
     if ( $t_zip = zip_open( $p_src_file ) ) 
     {
@@ -338,7 +350,7 @@ function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_pl
     $t_download_dir = plugins_get_download_dir();
     $t_release_file = $t_download_dir .  $t_release_filename;
 
-    log_event( LOG_PLUGIN, "PluginManagement: Update release for %s from v%s to v%s", $p_plugin_name, $p_plugin_current_version, $p_plugin_lastest_version );
+    log_event( LOG_PLUGIN, "Update release for %s from v%s to v%s", $p_plugin_name, $p_plugin_current_version, $p_plugin_lastest_version );
 
     if ( !file_exists( $t_plugin_dir ) ) {
         return false;
@@ -351,7 +363,7 @@ function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_pl
     #$t_archive_path =  plugins_get_backup_dir() . $p_plugin_name . '--v' . $p_plugin_current_version;
     #plugins_copy_recursive($t_plugin_dir, $t_archive_path);
 
-    log_event( LOG_PLUGIN, "PluginManagement: Download %s", $p_download_url );
+    log_event( LOG_PLUGIN, "Download %s", $p_download_url );
 
     #
     # Use curl to send GiHub API request
@@ -394,12 +406,12 @@ function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_pl
             $t_main_file = plugins_find_file( $t_dest_dir,  $p_plugin_name . ".php" );
             $t_main_dir = dirname( $t_main_file ) . DIRECTORY_SEPARATOR;
             if ( !is_blank($t_main_dir) ) {
-                log_event( LOG_PLUGIN, "PluginManagement: Found main plugin file dir = %s", $t_main_dir  );
+                log_event( LOG_PLUGIN, "Found main plugin file dir = %s", $t_main_dir  );
                 # update/overwrite the plugin files
                 plugins_copy_recursive( $t_main_dir , $t_plugin_dir  );
             }
             else {
-                log_event( LOG_PLUGIN, "PluginManagement: Could not find main plugin file %s", $t_main_file );
+                log_event( LOG_PLUGIN, "Could not find main plugin file %s", $t_main_file );
                 $t_success = false;
             }
         }
@@ -447,6 +459,8 @@ function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_pl
  */
 function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name ) 
 {
+    global $g_plugins_cache;
+
     $t_jso = null;
     $t_release_name = null;
     $t_zipball_url = null;
@@ -470,10 +484,17 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
         return null;
     }
     
+    #
+    # Check cache
+    #
+    if (array_key_exists($t_plugin_basename, $g_plugins_cache)) {
+        return $g_plugins_cache[$t_plugin_basename];
+    }
+
     $t_release_url = "https://api.github.com/repos/mantisbt-plugins/" . $t_plugin_basename  . "/releases/latest";
 
-    log_event( LOG_PLUGIN, "PluginManagement: Check latest release for %s", $t_plugin_basename );
-    log_event( LOG_PLUGIN, "PluginManagement: URL", $t_release_url );
+    log_event( LOG_PLUGIN, "Check latest release for %s", $t_plugin_basename );
+    log_event( LOG_PLUGIN, "URL", $t_release_url );
 
     #
     # Use curl to send GiHub API request
@@ -517,7 +538,7 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
     {
         try
         {
-            log_event(LOG_PLUGIN, "PluginManagement: Response 200 - %s", $t_response);
+            log_event(LOG_PLUGIN, "Response 200 - %s", $t_response);
             $t_jso = json_decode($t_response, true);
             #
             # Check response
@@ -558,23 +579,28 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
                     break;
                 }
 
-                log_event( LOG_PLUGIN, "PluginManagement: Version: %s", $t_version );
-                log_event( LOG_PLUGIN, "PluginManagement: Release name: %s", $t_release_name );
-                log_event( LOG_PLUGIN, "PluginManagement: Zipball URL: %s", $t_zipball_url );
-                log_event( LOG_PLUGIN, "PluginManagement: Tarball URL: %s", $t_tarball_url );
-                log_event( LOG_PLUGIN, "PluginManagement: Changelog: %s", $t_changelog );
+                log_event( LOG_PLUGIN, "Version: %s", $t_version );
+                log_event( LOG_PLUGIN, "Release name: %s", $t_release_name );
+                log_event( LOG_PLUGIN, "Zipball URL: %s", $t_zipball_url );
+                log_event( LOG_PLUGIN, "Tarball URL: %s", $t_tarball_url );
+                log_event( LOG_PLUGIN, "Changelog: %s", $t_changelog );
             }
         }
         catch (Exception $e) 
         {
-            log_event( LOG_PLUGIN, "PluginManagement: Exception decoding response %s", $e->getMessage() );
+            log_event( LOG_PLUGIN, "Exception decoding response %s", $e->getMessage() );
         }
     }
     else {
-        log_event( LOG_PLUGIN, "PluginManagement: Invalid/no response from github" );
+        log_event( LOG_PLUGIN, "Invalid/no response from github" );
     }
     
-	return array(
+    #
+    # Remove changelog for now, we are posting the cache using GET on redirects dont want 
+    # this to be too big, and dont use the changelog anyway right now as of v1.0.1
+    #
+    /*
+    $t_plugin_info = array(
         "success" => true,
         "name" => $t_release_name,
         "version" => $t_version,
@@ -582,6 +608,19 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
         "tarball_url" => $t_tarball_url,
         "changelog" => $t_changelog
     );
+    */
+
+    $t_plugin_info = array(
+        "success" => true,
+        "name" => $t_release_name,
+        "version" => $t_version,
+        "zipball_url" => $t_zipball_url,
+        "tarball_url" => $t_tarball_url
+    );
+
+    $g_plugins_cache[$t_plugin_basename] = $t_plugin_info;
+
+	return $t_plugin_info;
 }
 
 
@@ -615,9 +654,34 @@ function plugins_print_alert($p_message)
 
 function plugins_print_failure_and_redirect( $p_redirect_url, $p_message = '', $p_die = true )
 {
-    layout_page_header( null, $p_redirect_url );
+    layout_page_header_begin();
+    $p_time = current_user_get_pref( 'redirect_delay' );
+	$t_url = config_get_global( 'path' ) . $p_redirect_url;
+    echo "\t" . '<meta http-equiv="Refresh" content="' . $p_time . '; URL=' . $t_url . '" />' . "\n";
+    layout_page_header_end();
+
     layout_page_begin();
-    html_operation_failure( $p_redirect_url, $p_message );
+
+    echo '<div class="container-fluid">';
+	echo '<div class="col-md-12 col-xs-12">';
+	echo '<div class="space-0"></div>';
+	echo '<div class="alert alert-denger center">';
+
+	# Print message
+	if( is_blank( $p_message ) ) {
+		$t_message = lang_get( 'operation_failed' );
+	} else {
+		$t_message = $p_message;
+	}
+	echo '<p class="bold bigger-110">' . $t_message  . '</p><br />';
+
+	# Print buttons
+	echo '<div class="btn-group">';
+    print_link_button( $p_redirect_url, lang_get( 'proceed' ) );
+	echo '</div>';
+
+    echo '</div></div></div>', PHP_EOL;
+
     layout_page_end();
     if ( $p_die ) {
         die();
@@ -627,9 +691,34 @@ function plugins_print_failure_and_redirect( $p_redirect_url, $p_message = '', $
 
 function plugins_print_success_and_redirect($p_redirect_url, $p_message = '', $p_die = false)
 {
-    layout_page_header( null, $p_redirect_url );
+    layout_page_header_begin();
+    $p_time = current_user_get_pref( 'redirect_delay' );
+	$t_url = config_get_global( 'path' ) . $p_redirect_url;
+    echo "\t" . '<meta http-equiv="Refresh" content="' . $p_time . '; URL=' . $t_url . '" />' . "\n";
+    layout_page_header_end();
+
     layout_page_begin();
-    html_operation_successful( $p_redirect_url, $p_message );
+
+    echo '<div class="container-fluid">';
+	echo '<div class="col-md-12 col-xs-12">';
+	echo '<div class="space-0"></div>';
+	echo '<div class="alert alert-success center">';
+
+	# Print message
+	if( is_blank( $p_message ) ) {
+		$t_message = lang_get( 'operation_successful' );
+	} else {
+		$t_message = $p_message;
+	}
+	echo '<p class="bold bigger-110">' . $t_message  . '</p><br />';
+
+	# Print buttons
+	echo '<div class="btn-group">';
+    print_link_button( $p_redirect_url, lang_get( 'proceed' ) );
+	echo '</div>';
+
+    echo '</div></div></div>', PHP_EOL;
+
     layout_page_end();
     if ( $p_die ) {
         die();
