@@ -72,7 +72,9 @@ if ( !is_blank( $t_plugins_cache ) )
 	$g_plugins_cache = unserialize( $t_plugins_cache );
 }
 
-$t_plugins_ignore = array( 'MantisBT',  "Mantis Graphs", "Avatars via Gravatar", "Source" );
+$t_plugins_ignore = array( 'Import/Export issues', 'MantisBT Core', 'MantisBT Formatting',  'Mantis Graphs', 
+						   'Avatars via Gravatar', 'Source GitHub Integration', 'Source Subversion Integration',
+						   'Source Subversion / WebSVN Integration', 'Source GitLab Integration' );
 
 $t_plugins = plugin_find_all();
 uasort( $t_plugins,
@@ -187,14 +189,14 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin )
 	$t_new_release = null;
 	$t_github_release_found = false;
 
-	if (preg_grep($t_name + '\w*', $t_plugins_ignore)) {
-        $t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
-	}
-	else {
-		$t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
+	$t_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
 
-		if ( $f_check_for_updates ) {
-			$t_github_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;';
+	$t_ignored = preg_grep('/' . trim( $t_plugin->name ) . '[0-9A-z _-]*/i', $t_plugins_ignore);
+
+	if ( count( $t_ignored ) == 0 ) 
+	{
+        if ( $f_check_for_updates ) {
+			$t_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;';
 		}
 
 		if ( $f_check_for_updates && !$t_github_api_exhausted ) {
@@ -205,35 +207,35 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin )
 			if ( !is_blank( $t_new_release['error_message'] ) ) {
 				if ( stristr ( $t_new_release['error_message'], "limit exceeded" ) != false ) {
 					$t_github_api_exhausted = true;
-					$t_github_release_desc .= plugin_lang_get( 'api_requests_exhausted' );
+					$t_release_desc .= plugin_lang_get( 'api_requests_exhausted' );
 				}
 				else if ( stristr ( $t_new_release['error_message'], "not found" ) != false ) {
 					$t_github_release_found = false;
-					$t_github_release_desc .= plugin_lang_get( 'no_versions_found' );
+					$t_release_desc .= plugin_lang_get( 'no_versions_found' );
 				}
 			}
 			else if ( $t_new_release['version'] != null ) {  
 				if (version_compare($t_new_release['version'], $t_plugin->version) === 1) {
-					$t_github_release_desc = '<br /><span class="version_dated">' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version . '</span>';
+					$t_release_desc = '<br /><span class="version_dated">' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version . '</span>';
 				}
 				else {
-					$t_github_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
+					$t_release_desc = '<br />' . plugin_lang_get( 'current_version' ) . ': &nbsp;' . $t_plugin->version;
 				}
-				$t_github_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;' . $t_new_release['version'];
+				$t_release_desc .= '<br />' . plugin_lang_get( 'latest_version' ) . ': &nbsp;' . $t_new_release['version'];
 				$t_github_release_found = true;
 			}
 			else {
-				$t_github_release_desc .= plugin_lang_get( 'no_versions_found' );
+				$t_release_desc .= plugin_lang_get( 'no_versions_found' );
 			}
 		}
 		else {
 			if ($f_check_for_updates )
 			{
 				if ( $t_github_api_exhausted ) {
-					$t_github_release_desc .= plugin_lang_get( 'api_requests_exhausted' );
+					$t_release_desc .= plugin_lang_get( 'api_requests_exhausted' );
 				}
 				else {
-					$t_github_release_desc .= plugin_lang_get( 'no_versions_found' );
+					$t_release_desc .= plugin_lang_get( 'no_versions_found' );
 				}
 			}
 		}
@@ -263,8 +265,8 @@ foreach ( $t_plugins_installed as $t_basename => $t_plugin )
 	}
 
 	echo '<tr>';
-	echo '<td class="small">',$t_name,$t_github_release_desc,'<input type="hidden" name="change_',$t_basename,'" value="1"/></td>';
-	echo '<td class="small">',$t_description,$t_author,$t_url,$t_release_desc,'</td>';
+	echo '<td class="small">',$t_name,$t_release_desc,'<input type="hidden" name="change_',$t_basename,'" value="1"/></td>';
+	echo '<td class="small">',$t_description,$t_author,$t_url,'</td>';
 	echo '<td class="small center">',$t_depends,'</td>';
 	if( 'MantisCore' == $t_basename ) {
 		echo '<td>&#160;</td><td>&#160;</td>';
