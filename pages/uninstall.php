@@ -71,4 +71,7 @@ if( !is_null( $t_plugin ) ) {
 
 form_security_purge( 'manage_plugin_uninstall' );
 
-plugins_print_success_and_redirect( plugin_page( 'plugin_page', true ), plugin_lang_get( 'uninstall_success' ) );
+$f_plugin_cache = gpc_get_string( 'pcache', '' );
+$t_redirect_url = plugin_page( 'plugin_page', true ) . '&pcache=' . urlencode( $f_plugin_cache );
+
+plugins_print_success_and_redirect( $t_redirect_url, plugin_lang_get( 'uninstall_success' ) );

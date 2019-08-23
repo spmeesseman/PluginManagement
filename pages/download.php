@@ -11,12 +11,12 @@ $f_plugin_name = gpc_get_string( 'plugin_name' );
 $f_plugin_current_version = gpc_get_string( 'plugin_current_version' );
 $f_plugin_latest_version = gpc_get_string( 'plugin_latest_version' );
 $f_download_url = gpc_get_string( 'download_url' );
-$f_plugin_cache = gpc_get_string( 'pcache', '' );
 
 $t_success = plugins_update_plugin( $f_plugin_name, $f_plugin_current_version, $f_plugin_latest_version, $f_download_url );
 
 form_security_purge( 'plugin_PluginManagement_download' );
 
+$f_plugin_cache = gpc_get_string( 'pcache', '' );
 $t_redirect_url = plugin_page( 'plugin_page', true ) . '&pcache=' . urlencode( $f_plugin_cache );
 
 log_event(LOG_PLUGIN, $t_redirect_url);

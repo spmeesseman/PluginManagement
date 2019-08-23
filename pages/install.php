@@ -69,7 +69,8 @@ else {
 
 form_security_purge( 'manage_plugin_install' );
 
-$t_redirect_url = plugin_page( 'plugin_page', true );
+$f_plugin_cache = gpc_get_string( 'pcache', '' );
+$t_redirect_url = plugin_page( 'plugin_page', true ) . '&pcache=' . urlencode( $f_plugin_cache );
 
 if (!$t_success) {
 	if (!$f_restore) {
