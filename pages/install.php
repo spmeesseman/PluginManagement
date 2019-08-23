@@ -54,10 +54,13 @@ $f_restore = gpc_get_bool( 'restore' );
 $f_basename = gpc_get_string( 'name' );
 $f_version = gpc_get_string( 'version' );
 
+$t_success = false;
+
 if (!$f_restore) {
 	$t_plugin = plugin_register( $f_basename, true );
 	if( !is_null( $t_plugin ) ) {
 		plugin_install( $t_plugin );
+		$t_success = true;
 	}
 }
 else {
