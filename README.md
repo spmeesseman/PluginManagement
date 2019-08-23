@@ -69,7 +69,7 @@ TODO
 
 ## Screenshots
 
-![ss1](res/ss-get-version-buttons.png) 
+![ss1](res/ss-get-version-buttons.png)
 ![ss2](res/previous-versions.png)
 
 ## Todos
