@@ -1,5 +1,15 @@
 # PLUGINMANAGEMENT CHANGE LOG
 
+## Version 1.0.2 (November 17th, 2019)
+
+### Refactoring
+
+- display error message using trigger_error when write access error is encountered
+
+### Bug Fixes
+
+- backed up versions are not sorted
+
 ## Version 1.0.1 (August 23rd, 2019)
 
 ### Bug Fixes
