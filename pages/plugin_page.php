@@ -84,7 +84,9 @@ uasort( $t_plugins,
 );
 
 $t_plugins_backups = plugins_find_all_backups();
-uasort( $t_plugins_backedup,
+log_event( LOG_PLUGIN,count($t_plugins_backups ));
+
+uasort( $t_plugins_backups,
 	function ( $p_p1, $p_p2 ) {
 		return strcasecmp( $p_p1->name, $p_p2->name );
 	}
