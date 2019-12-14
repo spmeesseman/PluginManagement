@@ -23,7 +23,7 @@ class PluginManagementPlugin extends MantisPlugin
 
         $this->author = "Scott Meesseman, MantisBT Team";
         $this->contact = "spmeesseman@gmail.com";
-        $this->url = "https://github.com/mantisbt-plugins/Plugins";
+        $this->url = "https://github.com/spmeesseman/PluginManagement";
     }
     
 

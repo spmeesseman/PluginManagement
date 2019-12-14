@@ -458,7 +458,7 @@ function plugins_update_plugin( $p_plugin_name, $p_plugin_current_version, $p_pl
  * @param MantisPlugin $p_plugin Plugin basename.
  * @return boolean True if plugin has a new version available
  */
-function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name ) 
+function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name, $p_plugin_url = null ) 
 {
     global $g_plugins_cache;
 
@@ -494,6 +494,26 @@ function plugins_get_latest_release( $p_plugin_basename, $p_plugin_name )
 
     $t_release_url = "https://api.github.com/repos/mantisbt-plugins/" . $t_plugin_basename  . "/releases/latest";
 
+    if ( $p_plugin_url != null ) {
+        # Get the Github account name if this is a Github URL
+        #
+        $t_idx = strstr( $p_plugin_url, "github.com/" );
+        if ( $t_idx != -1 )
+        {
+            $t_idx = $t_idx + 11;
+            $t_account = substr( $p_plugin_url, $t_idx );
+            $t_idx = strstr( $t_account, "/" );
+            if ( $t_idx != -1 ) {
+                $t_account = substr( $t_account, 0, $t_idx );
+            }
+            else {
+                $t_account = null;
+            }
+            if ( $t_account != null ) {
+                $t_release_url = "https://api.github.com/repos/" . $t_account . "/" . $t_plugin_basename  . "/releases/latest";
+            }
+        }
+    }
     log_event( LOG_PLUGIN, "Check latest release for %s", $t_plugin_basename );
     log_event( LOG_PLUGIN, "URL", $t_release_url );
 
